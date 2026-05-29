@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import Find from './Find'
 import TrainerProfile from './TrainerProfile'
 import Messages from './Messages'
+import AthleteProfile from './AthleteProfile'
 
 export default function Home({ session }) {
   const [activeTab, setActiveTab] = useState('home')
@@ -19,6 +20,7 @@ export default function Home({ session }) {
     }
     if (activeTab === 'find') return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} />
     if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} />
+    if (activeTab === 'profile') return <AthleteProfile session={session} />
     return (
       <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
         <div style={{background:'#1A1A1A',borderRadius:'16px',padding:'24px',marginBottom:'20px',position:'relative',overflow:'hidden'}}>
@@ -33,7 +35,7 @@ export default function Home({ session }) {
           {title:'Find Coaches & Trainers',desc:'Browse football and basketball coaches near Phoenix',tab:'find'},
           {title:'Messages',desc:'Connect directly with coaches before booking',tab:'messages'},
           {title:'Book a Session',desc:'See live availability and lock in your training',tab:'calendar'},
-          {title:'Your Profile',desc:'Build your athlete resume for coaches to see',tab:'myprofile'},
+          {title:'Your Profile',desc:'Build your athlete resume for coaches to see',tab:'profile'},
         ].map((item,i) => (
           <div key={i} onClick={() => setActiveTab(item.tab)} style={{background:'white',borderRadius:'14px',padding:'16px',marginBottom:'10px',border:'1.5px solid #EBEBEB',display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}>
             <div>
