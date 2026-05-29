@@ -1,17 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Find from './Find'
 import TrainerProfile from './TrainerProfile'
 import Messages from './Messages'
 import AthleteProfile from './AthleteProfile'
+import TrainerSetup from './TrainerSetup'
 
 export default function Home({ session }) {
   const [activeTab, setActiveTab] = useState('home')
   const [selectedTrainer, setSelectedTrainer] = useState(null)
   const [openConvoWith, setOpenConvoWith] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  async function fetchProfile() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+    setProfile(data)
+    setProfileLoading(false)
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut()
+  }
+
+  if (profileLoading) return (
+    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#1A1A1A'}}>
+      <div style={{color:'#E3291A',fontSize:'28px',fontWeight:'900',fontFamily:'serif',letterSpacing:'2px'}}>PLAYMAKER</div>
+    </div>
+  )
+
+  if (profile?.role === "trainer" && !profile?.position) {
+    return (
+      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+        <TrainerSetup session={session} onComplete={fetchProfile} />
+      </div>
+    )
   }
 
   function renderContent() {
@@ -24,12 +55,12 @@ export default function Home({ session }) {
     return (
       <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
         <div style={{background:'#1A1A1A',borderRadius:'16px',padding:'24px',marginBottom:'20px',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',top:'-40px',right:'-40px',width:'180px',height:'180px',background:'radial-gradient(circle, rgba(227,41,26,0.4) 0%, transparent 65%)'}} />
+          <div style={{position:'absolute',top:'-40px',right:'-40px',width:'180px',height:'180px',background:'radial-gradient(circle,rgba(227,41,26,0.4) 0%,transparent 65%)'}} />
           <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontWeight:'600',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'6px',position:'relative'}}>Welcome Back</div>
           <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',color:'white',lineHeight:'1.1',position:'relative',marginBottom:'8px'}}>
             LET'S GET TO<br/><span style={{color:'#E3291A'}}>WORK.</span>
           </div>
-          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',position:'relative'}}>{session.user.email}</div>
+          <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',position:'relative'}}>{profile?.full_name || session.user.email}</div>
         </div>
         {[
           {title:'Find Coaches & Trainers',desc:'Browse football and basketball coaches near Phoenix',tab:'find'},
