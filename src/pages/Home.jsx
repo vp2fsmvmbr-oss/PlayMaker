@@ -5,6 +5,8 @@ import TrainerProfile from './TrainerProfile'
 import Messages from './Messages'
 import AthleteProfile from './AthleteProfile'
 import TrainerSetup from './TrainerSetup'
+import Calendar from './Calendar'
+import BookSession from './BookSession'
 
 export default function Home({ session }) {
   const [activeTab, setActiveTab] = useState('home')
@@ -12,24 +14,18 @@ export default function Home({ session }) {
   const [openConvoWith, setOpenConvoWith] = useState(null)
   const [profile, setProfile] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
+  const [booking, setBooking] = useState(null)
+  const [booked, setBooked] = useState(false)
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
+  useEffect(() => { fetchProfile() }, [])
 
   async function fetchProfile() {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
+    const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
     setProfile(data)
     setProfileLoading(false)
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-  }
+  async function handleSignOut() { await supabase.auth.signOut() }
 
   if (profileLoading) return (
     <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#1A1A1A'}}>
@@ -37,7 +33,7 @@ export default function Home({ session }) {
     </div>
   )
 
-  if (profile?.role === "trainer" && !profile?.position) {
+  if (profile?.role === 'trainer' && !profile?.position) {
     return (
       <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
         <TrainerSetup session={session} onComplete={fetchProfile} />
@@ -45,21 +41,43 @@ export default function Home({ session }) {
     )
   }
 
+  if (booked) {
+    return (
+      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5',alignItems:'center',justifyContent:'center',padding:'24px',textAlign:'center'}}>
+        <div style={{width:'80px',height:'80px',background:'rgba(34,197,94,0.1)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px',border:'2px solid rgba(34,197,94,0.2)'}}>
+          <div style={{fontSize:'36px'}}>✓</div>
+        </div>
+        <div style={{fontFamily:'serif',fontSize:'32px',fontWeight:'900',color:'#1A1A1A',marginBottom:'8px'}}>YOU ARE BOOKED.</div>
+        <div style={{fontSize:'14px',color:'#8A8A8A',marginBottom:'28px',lineHeight:1.6}}>Your session is confirmed. Get ready to work.</div>
+        <button onClick={() => { setBooked(false); setBooking(null); setActiveTab('calendar') }} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'14px 32px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',width:'100%'}}>
+          View My Calendar
+        </button>
+      </div>
+    )
+  }
+
+  if (booking) {
+    return (
+      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+        <BookSession trainer={booking} session={session} onBack={() => setBooking(null)} onBooked={() => setBooked(true)} />
+      </div>
+    )
+  }
+
   function renderContent() {
     if (activeTab === 'find' && selectedTrainer) {
-      return <TrainerProfile trainer={selectedTrainer} onBack={() => setSelectedTrainer(null)} onMessage={(trainer) => { setOpenConvoWith(trainer); setSelectedTrainer(null); setActiveTab('messages') }} session={session} />
+      return <TrainerProfile trainer={selectedTrainer} onBack={() => setSelectedTrainer(null)} onMessage={(trainer) => { setOpenConvoWith(trainer); setSelectedTrainer(null); setActiveTab('messages') }} onBook={(trainer) => { setBooking(trainer); setSelectedTrainer(null) }} session={session} />
     }
     if (activeTab === 'find') return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} />
     if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} />
+    if (activeTab === 'calendar') return <Calendar session={session} />
     if (activeTab === 'profile') return <AthleteProfile session={session} />
     return (
       <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
         <div style={{background:'#1A1A1A',borderRadius:'16px',padding:'24px',marginBottom:'20px',position:'relative',overflow:'hidden'}}>
           <div style={{position:'absolute',top:'-40px',right:'-40px',width:'180px',height:'180px',background:'radial-gradient(circle,rgba(227,41,26,0.4) 0%,transparent 65%)'}} />
           <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',fontWeight:'600',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'6px',position:'relative'}}>Welcome Back</div>
-          <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',color:'white',lineHeight:'1.1',position:'relative',marginBottom:'8px'}}>
-            LET'S GET TO<br/><span style={{color:'#E3291A'}}>WORK.</span>
-          </div>
+          <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',color:'white',lineHeight:'1.1',position:'relative',marginBottom:'8px'}}>LET'S GET TO<br/><span style={{color:'#E3291A'}}>WORK.</span></div>
           <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',position:'relative'}}>{profile?.full_name || session.user.email}</div>
         </div>
         {[
@@ -83,12 +101,8 @@ export default function Home({ session }) {
   return (
     <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
       <div style={{background:'white',padding:'14px 20px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #EBEBEB'}}>
-        <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',letterSpacing:'1px'}}>
-          PLAY<span style={{color:'#E3291A'}}>MAKER</span>
-        </div>
-        <button onClick={handleSignOut} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'100px',padding:'7px 14px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>
-          Sign Out
-        </button>
+        <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',letterSpacing:'1px'}}>PLAY<span style={{color:'#E3291A'}}>MAKER</span></div>
+        <button onClick={handleSignOut} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'100px',padding:'7px 14px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>Sign Out</button>
       </div>
       {renderContent()}
       <div style={{background:'white',borderTop:'1px solid #EBEBEB',display:'flex',padding:'8px 0 20px'}}>

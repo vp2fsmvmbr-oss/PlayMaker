@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function TrainerProfile({ trainer, onBack, onMessage }) {
+export default function TrainerProfile({ trainer, onBack, onMessage, onBook }) {
   const [activeTab, setActiveTab] = useState('reviews')
 
   return (
@@ -21,7 +21,7 @@ export default function TrainerProfile({ trainer, onBack, onMessage }) {
         </div>
         <div style={{display:'flex',gap:'8px'}}>
           <button onClick={() => onMessage(trainer)} style={{background:'#1A1A1A',color:'white',fontSize:'12px',fontWeight:'700',padding:'9px 16px',borderRadius:'100px',border:'none',cursor:'pointer'}}>Message</button>
-          <button style={{background:'#E3291A',color:'white',fontSize:'12px',fontWeight:'700',padding:'9px 16px',borderRadius:'100px',border:'none',cursor:'pointer'}}>Book</button>
+          <button onClick={() => onBook(trainer)} style={{background:'#E3291A',color:'white',fontSize:'12px',fontWeight:'700',padding:'9px 16px',borderRadius:'100px',border:'none',cursor:'pointer'}}>Book</button>
         </div>
       </div>
       <div style={{padding:'14px 18px 12px',background:'white',borderBottom:'1px solid #EBEBEB'}}>
@@ -76,8 +76,8 @@ export default function TrainerProfile({ trainer, onBack, onMessage }) {
         {activeTab==='availability' && (
           <div style={{textAlign:'center',padding:'20px 0'}}>
             <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A',marginBottom:'8px'}}>Ready to Book?</div>
-            <div style={{fontSize:'12px',color:'#8A8A8A',marginBottom:'16px'}}>Message the coach first to discuss your goals</div>
-            <button onClick={() => onMessage(trainer)} style={{background:'#E3291A',color:'white',fontFamily:'serif',fontSize:'16px',fontWeight:'900',letterSpacing:'1px',padding:'14px 32px',borderRadius:'12px',border:'none',cursor:'pointer',width:'100%'}}>Message First</button>
+            <div style={{fontSize:'12px',color:'#8A8A8A',marginBottom:'16px'}}>Choose a date and time that works for you</div>
+            <button onClick={() => onBook(trainer)} style={{background:'#E3291A',color:'white',fontFamily:'serif',fontSize:'16px',fontWeight:'900',letterSpacing:'1px',padding:'14px 32px',borderRadius:'12px',border:'none',cursor:'pointer',width:'100%'}}>Book a Session</button>
           </div>
         )}
       </div>
