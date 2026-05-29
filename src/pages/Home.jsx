@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import Find from './Find'
 import TrainerProfile from './TrainerProfile'
+import Messages from './Messages'
 
 export default function Home({ session }) {
   const [activeTab, setActiveTab] = useState('home')
   const [selectedTrainer, setSelectedTrainer] = useState(null)
+  const [openConvoWith, setOpenConvoWith] = useState(null)
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -13,9 +15,10 @@ export default function Home({ session }) {
 
   function renderContent() {
     if (activeTab === 'find' && selectedTrainer) {
-      return <TrainerProfile trainer={selectedTrainer} onBack={() => setSelectedTrainer(null)} onMessage={() => setActiveTab('messages')} session={session} />
+      return <TrainerProfile trainer={selectedTrainer} onBack={() => setSelectedTrainer(null)} onMessage={(trainer) => { setOpenConvoWith(trainer); setSelectedTrainer(null); setActiveTab('messages') }} session={session} />
     }
     if (activeTab === 'find') return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} />
+    if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} />
     return (
       <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
         <div style={{background:'#1A1A1A',borderRadius:'16px',padding:'24px',marginBottom:'20px',position:'relative',overflow:'hidden'}}>
