@@ -8,6 +8,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
+  const intervalRef = useRef(null)
 
   useEffect(() => {
     fetchConversations()
@@ -21,7 +22,17 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
   }, [openConvoWith])
 
   useEffect(() => {
-    if (selectedConvo) fetchMessages(selectedConvo)
+    if (!selectedConvo) {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      return
+    }
+    fetchMessages(selectedConvo)
+    intervalRef.current = setInterval(() => {
+      fetchMessages(selectedConvo)
+    }, 3000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [selectedConvo])
 
   useEffect(() => {
@@ -35,7 +46,6 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
       .select('*, sender:profiles!messages_sender_id_fkey(id,full_name,role), receiver:profiles!messages_receiver_id_fkey(id,full_name,role)')
       .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
       .order('created_at', { ascending: false })
-
     if (!error && data) {
       const seen = new Set()
       const convos = []
@@ -63,36 +73,35 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
 
   async function sendMessage() {
     if (!newMessage.trim() || !selectedConvo) return
-    const { error } = await supabase.from('messages').insert({
+    const msg = newMessage.trim()
+    setNewMessage('')
+    await supabase.from('messages').insert({
       sender_id: session.user.id,
       receiver_id: selectedConvo.otherId,
-      content: newMessage.trim()
+      content: msg
     })
-    if (!error) {
-      setNewMessage('')
-      fetchMessages(selectedConvo)
-      fetchConversations()
-    }
+    fetchMessages(selectedConvo)
+    fetchConversations()
   }
 
   if (selectedConvo) {
     return (
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-        <div style={{background:'white',padding:'12px 16px',display:'flex',alignItems:'center',gap:'10px',borderBottom:'1px solid #EBEBEB'}}>
-          <button onClick={() => setSelectedConvo(null)} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+        <div style={{background:'white',padding:'12px 16px',display:'flex',alignItems:'center',gap:'10px',borderBottom:'1px solid #EBEBEB',flexShrink:0}}>
+          <button onClick={() => setSelectedConvo(null)} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1A1A1A'}}>‹</button>
           <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'14px',color:'white',fontWeight:'900'}}>
             {selectedConvo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
           </div>
           <div style={{flex:1}}>
             <div style={{fontSize:'15px',fontWeight:'700',color:'#1A1A1A'}}>{selectedConvo.otherProfile?.full_name}</div>
-            <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Online</div>
+            <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Active now</div>
           </div>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
           {messages.length === 0 ? (
-            <div style={{textAlign:'center',padding:'40px 20px',color:'#8A8A8A'}}>
+            <div style={{textAlign:'center',padding:'40px 20px'}}>
               <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A',marginBottom:'6px'}}>Start the conversation</div>
-              <div style={{fontSize:'12px'}}>Introduce yourself and tell {selectedConvo.otherProfile?.full_name?.split(' ')[0]} what you want to work on</div>
+              <div style={{fontSize:'12px',color:'#8A8A8A'}}>Introduce yourself and tell {selectedConvo.otherProfile?.full_name?.split(' ')[0]} what you want to work on</div>
             </div>
           ) : messages.map(msg => (
             <div key={msg.id} style={{display:'flex',flexDirection:msg.sender_id===session.user.id?'row-reverse':'row',gap:'6px',alignItems:'flex-end'}}>
@@ -113,8 +122,14 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div style={{background:'white',borderTop:'1px solid #EBEBEB',padding:'10px 14px 24px',display:'flex',gap:'8px',alignItems:'center'}}>
-          <input value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key==='Enter' && sendMessage()} placeholder={`Message ${selectedConvo.otherProfile?.full_name?.split(' ')[0]}...`} style={{flex:1,background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'22px',padding:'10px 14px',fontSize:'13px',outline:'none'}} />
+        <div style={{background:'white',borderTop:'1px solid #EBEBEB',padding:'10px 14px 24px',display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
+          <input
+            value={newMessage}
+            onChange={e => setNewMessage(e.target.value)}
+            onKeyDown={e => e.key==='Enter' && sendMessage()}
+            placeholder={`Message ${selectedConvo.otherProfile?.full_name?.split(' ')[0]}...`}
+            style={{flex:1,background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'22px',padding:'10px 14px',fontSize:'13px',outline:'none',color:'#1A1A1A'}}
+          />
           <button onClick={sendMessage} style={{width:'40px',height:'40px',background:'#E3291A',border:'none',borderRadius:'50%',color:'white',fontSize:'18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>↑</button>
         </div>
       </div>
@@ -126,7 +141,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
       <div style={{padding:'16px 20px 12px',background:'white',borderBottom:'1px solid #EBEBEB'}}>
         <div style={{fontFamily:'serif',fontSize:'24px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'10px'}}>Messages</div>
         <div style={{background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'10px',padding:'9px 12px',display:'flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#8A8A8A'}}>
-          🔍 Search conversations...
+          Search conversations...
         </div>
       </div>
       {loading ? (

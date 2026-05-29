@@ -79,7 +79,7 @@ export default function AthleteProfile({ session }) {
                 value={form[field.key]}
                 onChange={e => setForm({...form,[field.key]:e.target.value})}
                 placeholder={field.placeholder}
-                style={{width:'100%',padding:'12px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'14px',outline:'none',boxSizing:'border-box',background:'#F7F7F5'}}
+                style={{width:'100%',padding:'12px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'14px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',color:'#1A1A1A'}}
               />
             </div>
           ))}
