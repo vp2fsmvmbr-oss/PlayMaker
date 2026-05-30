@@ -12,13 +12,17 @@ export default function HomeAthlete({ profile, onNavigate }) {
       .from('profiles')
       .select('*, trainers(*)')
       .eq('role', 'trainer')
-      .limit(6)
-    if (data) setTrainers(data)
+    if (data) {
+      const sorted = data.sort((a,b) => (b.trainers?.rating||0) - (a.trainers?.rating||0))
+      setTrainers(sorted.slice(0,6))
+    }
   }
 
   const filtered = sport === 'all' ? trainers : trainers.filter(t => t.sport === sport)
   const featured = filtered[0]
   const rest = filtered.slice(1)
+
+  const firstName = profile?.full_name?.split(' ')[0]?.toUpperCase() || 'ATHLETE'
 
   return (
     <div style={{flex:1,overflowY:'auto'}}>
@@ -27,7 +31,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
           {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
         </div>
         <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',fontWeight:'900',color:'#1A1A1A',lineHeight:1.1,marginBottom:'4px'}}>
-          LET'S GET TO<br/><span style={{color:'#E3291A'}}>WORK,</span> {profile?.full_name?.split(' ')[0]?.toUpperCase() || 'ATHLETE'}.
+          LET'S GET TO WORK,<br/><span style={{color:'#E3291A'}}>{firstName}.</span>
         </div>
         <div style={{fontSize:'12px',color:'#8A8A8A'}}>Phoenix, AZ · Football & Basketball</div>
       </div>
@@ -97,24 +101,11 @@ export default function HomeAthlete({ profile, onNavigate }) {
         )}
 
         <div style={{marginBottom:'20px'}}>
-          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>UPCOMING EVENTS</div>
-          {[
-            {month:'Jun',day:'06',title:'Summer Hoops Classic',meta:'Mesa, AZ · U16',tag:'Tournament'},
-            {month:'Jul',day:'12',title:'Elite Speed & Agility Camp',meta:'Scottsdale, AZ · 3 Days',tag:'Camp'},
-            {month:'Aug',day:'01',title:'Fall Flag Football Registration',meta:'Phoenix, AZ · Ages 13–18',tag:'Season'},
-          ].map((event,i) => (
-            <div key={i} style={{background:'white',borderRadius:'12px',padding:'12px 14px',display:'flex',gap:'12px',alignItems:'center',border:'1.5px solid #EBEBEB',marginBottom:'8px',cursor:'pointer'}}>
-              <div style={{background:'rgba(227,41,26,0.08)',borderRadius:'8px',padding:'6px 8px',textAlign:'center',minWidth:'44px'}}>
-                <div style={{fontSize:'8px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'1px',color:'#E3291A'}}>{event.month}</div>
-                <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#E3291A',lineHeight:1}}>{event.day}</div>
-              </div>
-              <div style={{flex:1}}>
-                <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>{event.title}</div>
-                <div style={{fontSize:'10px',color:'#8A8A8A'}}>{event.meta}</div>
-                <div style={{background:'rgba(227,41,26,0.08)',color:'#E3291A',fontSize:'9px',fontWeight:'700',padding:'2px 7px',borderRadius:'100px',textTransform:'uppercase',letterSpacing:'0.5px',marginTop:'5px',display:'inline-block'}}>{event.tag}</div>
-              </div>
-            </div>
-          ))}
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>UPCOMING EVENTS</div>
+          <div style={{background:'white',borderRadius:'14px',border:'1.5px solid #EBEBEB',padding:'20px',textAlign:'center'}}>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'6px'}}>Events Coming Soon</div>
+            <div style={{fontSize:'12px',color:'#8A8A8A',lineHeight:1.5}}>Local tournaments, camps, and league registrations will appear here.</div>
+          </div>
         </div>
       </div>
     </div>

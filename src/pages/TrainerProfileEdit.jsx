@@ -10,6 +10,7 @@ export default function TrainerProfileEdit({ session, profile, onBack, onSave })
     bio: '',
     years_experience: '',
     price_per_hour: '',
+    first_session_discount: false,
   })
   const [loading, setLoading] = useState(false)
 
@@ -23,6 +24,7 @@ export default function TrainerProfileEdit({ session, profile, onBack, onSave })
         bio: profile.bio || '',
         years_experience: profile.trainers?.years_experience?.toString() || '',
         price_per_hour: profile.trainers?.price_per_hour?.toString() || '',
+        first_session_discount: profile.trainers?.first_session_discount || false,
       })
     }
   }, [profile])
@@ -41,6 +43,7 @@ export default function TrainerProfileEdit({ session, profile, onBack, onSave })
       id: session.user.id,
       years_experience: parseInt(form.years_experience) || 0,
       price_per_hour: parseInt(form.price_per_hour) || 0,
+      first_session_discount: form.first_session_discount,
     })
 
     setLoading(false)
@@ -84,6 +87,16 @@ export default function TrainerProfileEdit({ session, profile, onBack, onSave })
                 {s.charAt(0).toUpperCase()+s.slice(1)}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div style={{background:'white',borderRadius:'12px',border:'1.5px solid #EBEBEB',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div>
+            <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>First Session Discount</div>
+            <div style={{fontSize:'12px',color:'#8A8A8A'}}>Offer $10 off to new athletes</div>
+          </div>
+          <div onClick={() => setForm({...form,first_session_discount:!form.first_session_discount})} style={{width:'44px',height:'24px',borderRadius:'12px',background:form.first_session_discount?'#E3291A':'#EBEBEB',position:'relative',cursor:'pointer',transition:'background 0.2s',flexShrink:0}}>
+            <div style={{position:'absolute',top:'2px',left:form.first_session_discount?'22px':'2px',width:'20px',height:'20px',borderRadius:'50%',background:'white',boxShadow:'0 1px 4px rgba(0,0,0,0.2)',transition:'left 0.2s'}} />
           </div>
         </div>
 

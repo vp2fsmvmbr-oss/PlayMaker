@@ -5,6 +5,7 @@ export default function Athletes({ onSelectAthlete }) {
   const [athletes, setAthletes] = useState([])
   const [loading, setLoading] = useState(true)
   const [sport, setSport] = useState('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => { fetchAthletes() }, [])
 
@@ -15,7 +16,18 @@ export default function Athletes({ onSelectAthlete }) {
     setLoading(false)
   }
 
-  const filtered = sport === 'all' ? athletes : athletes.filter(a => a.sport === sport)
+  const filtered = athletes
+    .filter(a => sport === 'all' || a.sport === sport)
+    .filter(a => {
+      if (!search.trim()) return true
+      const q = search.toLowerCase()
+      return (
+        a.full_name?.toLowerCase().includes(q) ||
+        a.position?.toLowerCase().includes(q) ||
+        a.sport?.toLowerCase().includes(q) ||
+        a.school?.toLowerCase().includes(q)
+      )
+    })
 
   return (
     <div style={{flex:1,overflowY:'auto',background:'#F7F7F5'}}>
@@ -27,6 +39,14 @@ export default function Athletes({ onSelectAthlete }) {
               {s === 'all' ? 'All Sports' : s.charAt(0).toUpperCase()+s.slice(1)}
             </button>
           ))}
+        </div>
+        <div style={{marginTop:'10px'}}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder='Search by name, position, school...'
+            style={{width:'100%',padding:'10px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'13px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',color:'#1A1A1A'}}
+          />
         </div>
       </div>
       <div style={{padding:'12px 16px 80px',display:'flex',flexDirection:'column',gap:'10px'}}>

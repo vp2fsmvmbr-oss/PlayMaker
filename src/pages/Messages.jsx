@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import BlockButton from './BlockButton'
 import BlockedUsers from './BlockedUsers'
 
-export default function Messages({ session, openConvoWith, onConvoOpened, onViewProfile }) {
+export default function Messages({ session, openConvoWith, onConvoOpened, onViewProfile, onReport }) {
   const [conversations, setConversations] = useState([])
   const [selectedConvo, setSelectedConvo] = useState(null)
   const [messages, setMessages] = useState([])
@@ -110,7 +110,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened, onView
             <div style={{fontSize:'15px',fontWeight:'700',color:'#1A1A1A'}}>{selectedConvo.otherProfile?.full_name}</div>
             <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Tap to view profile</div>
           </div>
-          <BlockButton session={session} otherId={selectedConvo.otherId} otherName={selectedConvo.otherProfile?.full_name} />
+          <BlockButton session={session} otherId={selectedConvo.otherId} otherName={selectedConvo.otherProfile?.full_name} onReport={() => onReport && onReport(selectedConvo.otherProfile)} />
           <button onClick={() => { if(window.confirm('Delete this conversation?')) { deleteConversation(selectedConvo.otherId); setSelectedConvo(null) }}} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#8A8A8A',padding:'4px'}}>🗑</button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react"
 import BlockedUsers from "./BlockedUsers"
 import { supabase } from '../lib/supabase'
 
-export default function AthleteProfile({ session }) {
+export default function AthleteProfile({ session, onSignOut }) {
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
+  const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState({
     full_name: '', sport: '', position: '', school: '',
@@ -13,7 +14,13 @@ export default function AthleteProfile({ session }) {
 
   useEffect(() => {
     fetchProfile()
+    fetchBookings()
   }, [])
+
+  async function fetchBookings() {
+    const { data } = await supabase.from('bookings').select('*, trainer:profiles!bookings_trainer_id_fkey(id,full_name,sport,position)').eq('athlete_id', session.user.id).order('date', {ascending:false}).limit(5)
+    if (data) setBookings(data)
+  }
 
   async function fetchProfile() {
     const { data } = await supabase
@@ -41,6 +48,7 @@ export default function AthleteProfile({ session }) {
   }
 
   async function saveProfile() {
+    if (!form.full_name.trim()) { alert('Please enter your full name'); return }
     const { error } = await supabase
       .from('profiles')
       .update(form)
@@ -188,9 +196,28 @@ export default function AthleteProfile({ session }) {
 
       <div style={{padding:'14px 18px 80px'}}>
         <div style={{fontSize:'11px',fontWeight:'700',color:'#8A8A8A',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'12px'}}>Recent Sessions</div>
-        <div style={{textAlign:'center',padding:'20px 0',color:'#8A8A8A'}}>
-          <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'6px'}}>No sessions yet</div>
-          <div style={{fontSize:'12px'}}>Find a coach and book your first session</div>
+        {bookings.length === 0 ? (
+          <div style={{textAlign:'center',padding:'20px 0',color:'#8A8A8A'}}>
+            <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'6px'}}>No sessions yet</div>
+            <div style={{fontSize:'12px'}}>Find a coach and book your first session</div>
+          </div>
+        ) : bookings.map(b => (
+          <div key={b.id} style={{background:'white',borderRadius:'12px',border:'1.5px solid #EBEBEB',padding:'12px 14px',display:'flex',gap:'10px',alignItems:'center',marginBottom:'8px'}}>
+            <div style={{background:'rgba(227,41,26,0.08)',borderRadius:'8px',padding:'6px 8px',textAlign:'center',minWidth:'44px'}}>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#E3291A',lineHeight:1}}>{new Date(b.date).getDate()}</div>
+              <div style={{fontSize:'8px',color:'#E3291A',fontWeight:'700',textTransform:'uppercase'}}>{new Date(b.date).toLocaleDateString('en-US',{month:'short'})}</div>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>{b.trainer?.full_name}</div>
+              <div style={{fontSize:'11px',color:'#8A8A8A'}}>{b.time} · {b.duration} min</div>
+            </div>
+            <div style={{background:b.status==='confirmed'?'rgba(34,197,94,0.1)':b.status==='declined'?'rgba(227,41,26,0.08)':'rgba(245,158,11,0.1)',color:b.status==='confirmed'?'#22c55e':b.status==='declined'?'#E3291A':'#f59e0b',fontSize:'9px',fontWeight:'700',padding:'3px 8px',borderRadius:'100px',textTransform:'uppercase'}}>
+              {b.status}
+            </div>
+          </div>
+        ))}
+        <div style={{marginTop:'16px',paddingBottom:'20px'}}>
+          <button onClick={onSignOut} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer'}}>Sign Out</button>
         </div>
       </div>
     </div>

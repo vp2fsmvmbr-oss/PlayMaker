@@ -6,6 +6,7 @@ export default function Find({ onSelectTrainer, session }) {
   const [loading, setLoading] = useState(true)
   const [sport, setSport] = useState('all')
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState('rating')
 
   useEffect(() => { fetchTrainers() }, [])
 
@@ -37,6 +38,12 @@ export default function Find({ onSelectTrainer, session }) {
         t.location?.toLowerCase().includes(q)
       )
     })
+    .sort((a,b) => {
+      if (sort === 'rating') return (b.trainers?.rating||0) - (a.trainers?.rating||0)
+      if (sort === 'price_low') return (a.trainers?.price_per_hour||0) - (b.trainers?.price_per_hour||0)
+      if (sort === 'price_high') return (b.trainers?.price_per_hour||0) - (a.trainers?.price_per_hour||0)
+      return 0
+    })
 
   return (
     <div style={{flex:1,overflowY:'auto',background:'#F7F7F5'}}>
@@ -50,17 +57,24 @@ export default function Find({ onSelectTrainer, session }) {
           ))}
         </div>
         <div style={{marginTop:'10px'}}>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder='Search by name, position, location...'
-            style={{width:'100%',padding:'10px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'13px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',color:'#1A1A1A'}}
-          />
+          <div style={{position:'relative'}}>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder='Search by name, position, location...'
+              style={{width:'100%',padding:'10px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'13px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',color:'#1A1A1A',paddingRight:search?'36px':'14px'}}
+            />
+            {search && <button onClick={() => setSearch('')} style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#8A8A8A',lineHeight:1}}>×</button>}
+          </div>
         </div>
       </div>
       <div style={{padding:'6px 16px 4px',display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:'10px'}}>
         <div style={{fontSize:'12px',color:'#8A8A8A',fontWeight:'500'}}>{filtered.length} coaches near Phoenix, AZ</div>
-        <div style={{fontSize:'12px',fontWeight:'600',color:'#1A1A1A'}}>Sort: Nearest ▾</div>
+        <select value={sort} onChange={e => setSort(e.target.value)} style={{fontSize:'12px',fontWeight:'600',color:'#1A1A1A',border:'none',background:'none',cursor:'pointer',outline:'none'}}>
+          <option value='rating'>Top Rated</option>
+          <option value='price_low'>Price: Low to High</option>
+          <option value='price_high'>Price: High to Low</option>
+        </select>
       </div>
       <div style={{padding:'8px 16px 80px',display:'flex',flexDirection:'column',gap:'12px'}}>
         {loading ? (
@@ -88,7 +102,7 @@ export default function Find({ onSelectTrainer, session }) {
                     <div style={{display:'flex',alignItems:'center',gap:'4px',fontSize:'13px',fontWeight:'700',color:'white'}}>
                       <span style={{color:'#f59e0b'}}>★★★★★</span> {trainer.trainers?.rating || '5.0'}
                     </div>
-                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.35)'}}>New on PlayMaker</div>
+                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.35)'}}>{trainer.trainers?.review_count ? trainer.trainers.review_count + ' reviews' : 'New on PlayMaker'}</div>
                   </div>
                 </div>
                 <div style={{width:'52px',height:'52px',borderRadius:'14px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'20px',color:'white',border:'2px solid rgba(255,255,255,0.1)',flexShrink:0}}>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import LeaveReview from './LeaveReview'
 import { supabase } from '../lib/supabase'
 
-export default function Calendar({ session, profile }) {
+export default function Calendar({ session, profile, onReview, onSetAvailability }) {
   const [view, setView] = useState('upcoming')
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -111,6 +112,11 @@ export default function Calendar({ session, profile }) {
             <button onClick={() => updateBooking(booking,'declined')} style={{width:'100%',background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Cancel Session</button>
           </div>
         )}
+        {!isTrainer && booking.status === 'confirmed' && new Date(booking.date) < new Date() && (
+          <div style={{padding:'0 18px 16px'}}>
+            <button onClick={() => onReview && onReview(booking)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Leave a Review</button>
+          </div>
+        )}
       </div>
     )
   }
@@ -118,7 +124,10 @@ export default function Calendar({ session, profile }) {
   return (
     <div style={{flex:1,overflowY:'auto'}}>
       <div style={{padding:'16px 20px 12px',background:'white',borderBottom:'1px solid #EBEBEB'}}>
-        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',color:'#1A1A1A',letterSpacing:'1px',marginBottom:'12px'}}>Calendar</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',color:'#1A1A1A',letterSpacing:'1px'}}>Calendar</div>
+          {isTrainer && <button onClick={onSetAvailability} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'100px',padding:'7px 14px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>Set Availability</button>}
+        </div>
         <div style={{display:'flex',background:'#F7F7F5',borderRadius:'10px',padding:'3px',gap:'3px'}}>
           {['upcoming','pending','past'].map(v => (
             <button key={v} onClick={() => setView(v)} style={{flex:1,padding:'8px',borderRadius:'8px',border:'none',background:view===v?'white':'transparent',color:view===v?'#1A1A1A':'#8A8A8A',fontWeight:'700',fontSize:'11px',cursor:'pointer',textTransform:'capitalize',boxShadow:view===v?'0 1px 4px rgba(0,0,0,0.08)':'none'}}>

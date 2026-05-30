@@ -13,6 +13,10 @@ import Athletes from './Athletes'
 import AthleteView from './AthleteView'
 import Notifications from './Notifications'
 import TrainerProfileEdit from './TrainerProfileEdit'
+import LeaveReview from './LeaveReview'
+import AthleteOnboarding from './AthleteOnboarding'
+import ReportUser from './ReportUser'
+import SetAvailability from './SetAvailability'
 import BlockedUsers from './BlockedUsers'
 
 export default function Home({ session }) {
@@ -27,6 +31,9 @@ export default function Home({ session }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [showBlocked, setShowBlocked] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [reviewBooking, setReviewBooking] = useState(null)
+  const [reportUser, setReportUser] = useState(null)
+  const [settingAvailability, setSettingAvailability] = useState(false)
   const [viewProfileUser, setViewProfileUser] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -59,22 +66,22 @@ export default function Home({ session }) {
   }
 
   if (profileLoading) return (
-    <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#1A1A1A'}}>
+    <div style={{height:'100%',minHeight:'100%',display:'flex',alignItems:'center',justifyContent:'center',background:'#1A1A1A'}}>
       <div style={{color:'#E3291A',fontSize:'28px',fontWeight:'900',fontFamily:"'Bebas Neue', sans-serif",letterSpacing:'2px'}}>PLAYMAKER</div>
     </div>
   )
 
   if (profile?.role === 'trainer' && !profile?.position) {
-    return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-        <TrainerSetup session={session} onComplete={fetchProfile} />
-      </div>
-    )
+    return <TrainerSetup session={session} onComplete={fetchProfile} />
+  }
+
+  if (profile?.role === 'athlete' && !profile?.full_name) {
+    return <AthleteOnboarding session={session} onComplete={fetchProfile} />
   }
 
   if (booked) {
     return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5',alignItems:'center',justifyContent:'center',padding:'24px',textAlign:'center'}}>
+      <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',background:'#F7F7F5',alignItems:'center',justifyContent:'center',padding:'24px',textAlign:'center'}}>
         <div style={{width:'80px',height:'80px',background:'rgba(34,197,94,0.1)',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px',border:'2px solid rgba(34,197,94,0.2)'}}>
           <div style={{fontSize:'36px'}}>✓</div>
         </div>
@@ -89,24 +96,16 @@ export default function Home({ session }) {
   }
 
   if (booking) {
-    return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-        <BookSession trainer={booking} session={session} onBack={() => setBooking(null)} onBooked={() => setBooked(true)} />
-      </div>
-    )
+    return <BookSession trainer={booking} session={session} onBack={() => setBooking(null)} onBooked={() => setBooked(true)} />
   }
 
   if (showBlocked) {
-    return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-        <BlockedUsers session={session} onClose={() => setShowBlocked(false)} />
-      </div>
-    )
+    return <BlockedUsers session={session} onClose={() => setShowBlocked(false)} />
   }
 
   if (showNotifications) {
     return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
         <div style={{background:'white',padding:'14px 20px 12px',display:'flex',alignItems:'center',gap:'12px',borderBottom:'1px solid #EBEBEB'}}>
           <button onClick={() => { setShowNotifications(false); fetchUnread() }} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',color:'#1A1A1A'}}>‹</button>
           <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#1A1A1A',letterSpacing:'0.5px'}}>Notifications</div>
@@ -116,27 +115,27 @@ export default function Home({ session }) {
     )
   }
 
+  if (settingAvailability) {
+    return <SetAvailability session={session} onBack={() => setSettingAvailability(false)} />
+  }
+
+  if (reportUser) {
+    return <ReportUser session={session} reportedId={reportUser.id} reportedName={reportUser.full_name} onBack={() => setReportUser(null)} />
+  }
+
+  if (reviewBooking) {
+    return <LeaveReview booking={reviewBooking} session={session} onBack={() => setReviewBooking(null)} onSubmitted={() => { setReviewBooking(null); setActiveTab('calendar') }} />
+  }
+
   if (editingProfile) {
-    return (
-      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-        <TrainerProfileEdit session={session} profile={profile} onBack={() => setEditingProfile(false)} onSave={() => { setEditingProfile(false); fetchProfile() }} />
-      </div>
-    )
+    return <TrainerProfileEdit session={session} profile={profile} onBack={() => setEditingProfile(false)} onSave={() => { setEditingProfile(false); fetchProfile() }} />
   }
 
   if (viewProfileUser) {
     if (viewProfileUser.role === 'trainer') {
-      return (
-        <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-          <TrainerProfile trainer={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(t) => { setOpenConvoWith(t); setViewProfileUser(null); setActiveTab('messages') }} onBook={(t) => { setBooking(t); setViewProfileUser(null) }} session={session} />
-        </div>
-      )
+      return <TrainerProfile trainer={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(t) => { setOpenConvoWith(t); setViewProfileUser(null); setActiveTab('messages') }} onBook={(t) => { setBooking(t); setViewProfileUser(null) }} session={session} />
     } else {
-      return (
-        <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
-          <AthleteView athlete={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(a) => { setOpenConvoWith(a); setViewProfileUser(null); setActiveTab('messages') }} />
-        </div>
-      )
+      return <AthleteView athlete={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(a) => { setOpenConvoWith(a); setViewProfileUser(null); setActiveTab('messages') }} />
     }
   }
 
@@ -151,8 +150,8 @@ export default function Home({ session }) {
     }
     if (activeTab === "find") return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} session={session} />
     if (activeTab === 'athletes') return <Athletes onSelectAthlete={(a) => setSelectedAthlete(a)} />
-    if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} onViewProfile={(user) => setViewProfileUser(user)} />
-    if (activeTab === 'calendar') return <Calendar session={session} profile={profile} />
+    if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} onViewProfile={(user) => setViewProfileUser(user)} onReport={(user) => setReportUser(user)} />
+    if (activeTab === 'calendar') return <Calendar session={session} profile={profile} onReview={(b) => setReviewBooking(b)} onSetAvailability={() => setSettingAvailability(true)} />
     if (activeTab === 'profile' && isTrainer) {
       return (
         <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
@@ -181,22 +180,22 @@ export default function Home({ session }) {
           )}
           <button onClick={() => setShowBlocked(true)} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}>Blocked Users</button>
           <button onClick={() => setEditingProfile(true)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer',marginTop:'8px'}}>Edit Profile</button>
+          <button onClick={handleSignOut} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}>Sign Out</button>
         </div>
       )
     }
-    if (activeTab === 'profile') return <AthleteProfile session={session} />
+    if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} />
     if (activeTab === 'home' && isTrainer) return <HomeTrainer profile={profile} session={session} onNavigate={handleNavigate} />
     return <HomeAthlete profile={profile} onNavigate={handleNavigate} />
   }
 
   return (
-    <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
       <div style={{background:'white',padding:'14px 20px 12px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #EBEBEB'}}>
         <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',letterSpacing:'1px',color:'#1A1A1A'}}>
           PLAY<span style={{color:'#E3291A'}}>MAKER</span>
         </div>
-        <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-          <button onClick={() => setShowNotifications(true)} style={{width:'36px',height:'36px',borderRadius:'50%',background:'#F7F7F5',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative',fontSize:'18px'}}>
+        <button onClick={() => setShowNotifications(true)} style={{width:'36px',height:'36px',borderRadius:'50%',background:'#F7F7F5',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative',fontSize:'18px'}}>
             🔔
             {unreadCount > 0 && (
               <div style={{position:'absolute',top:'4px',right:'4px',width:'16px',height:'16px',background:'#E3291A',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',fontWeight:'700',color:'white',border:'2px solid white'}}>
@@ -204,10 +203,6 @@ export default function Home({ session }) {
               </div>
             )}
           </button>
-          <button onClick={handleSignOut} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'100px',padding:'7px 14px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>
-            Sign Out
-          </button>
-        </div>
       </div>
       {renderContent()}
       <div style={{background:'white',borderTop:'1px solid #EBEBEB',display:'flex',padding:'8px 0 20px'}}>
