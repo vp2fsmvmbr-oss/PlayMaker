@@ -12,6 +12,7 @@ import HomeTrainer from './HomeTrainer'
 import Athletes from './Athletes'
 import AthleteView from './AthleteView'
 import Notifications from './Notifications'
+import TrainerProfileEdit from './TrainerProfileEdit'
 import BlockedUsers from './BlockedUsers'
 
 export default function Home({ session }) {
@@ -25,6 +26,7 @@ export default function Home({ session }) {
   const [booked, setBooked] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showBlocked, setShowBlocked] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(false)
   const [viewProfileUser, setViewProfileUser] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -114,6 +116,14 @@ export default function Home({ session }) {
     )
   }
 
+  if (editingProfile) {
+    return (
+      <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+        <TrainerProfileEdit session={session} profile={profile} onBack={() => setEditingProfile(false)} onSave={() => { setEditingProfile(false); fetchProfile() }} />
+      </div>
+    )
+  }
+
   if (viewProfileUser) {
     if (viewProfileUser.role === 'trainer') {
       return (
@@ -170,6 +180,7 @@ export default function Home({ session }) {
             </div>
           )}
           <button onClick={() => setShowBlocked(true)} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}>Blocked Users</button>
+          <button onClick={() => setEditingProfile(true)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer',marginTop:'8px'}}>Edit Profile</button>
         </div>
       )
     }
