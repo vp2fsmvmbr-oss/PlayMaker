@@ -26,7 +26,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
         <div style={{fontSize:'11px',color:'#8A8A8A',fontWeight:'500',marginBottom:'2px'}}>
           {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
         </div>
-        <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',color:'#1A1A1A',lineHeight:1.1,marginBottom:'4px'}}>
+        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',fontWeight:'900',color:'#1A1A1A',lineHeight:1.1,marginBottom:'4px'}}>
           LET'S GET TO<br/><span style={{color:'#E3291A'}}>WORK,</span> {profile?.full_name?.split(' ')[0]?.toUpperCase() || 'ATHLETE'}.
         </div>
         <div style={{fontSize:'12px',color:'#8A8A8A'}}>Phoenix, AZ · Football & Basketball</div>
@@ -44,7 +44,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
         {featured && (
           <>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-              <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>TOP TRAINER NEAR YOU</div>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>TOP TRAINER NEAR YOU</div>
               <div onClick={() => onNavigate('find')} style={{fontSize:'12px',fontWeight:'700',color:'#E3291A',cursor:'pointer'}}>See all</div>
             </div>
             <div onClick={() => onNavigate('find', featured)} style={{background:'#1A1A1A',borderRadius:'16px',overflow:'hidden',position:'relative',height:'180px',cursor:'pointer',marginBottom:'20px'}}>
@@ -53,7 +53,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
               <div style={{position:'absolute',inset:0,padding:'18px',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
                 <div style={{background:'#E3291A',borderRadius:'100px',padding:'4px 10px',fontSize:'9px',fontWeight:'700',color:'white',letterSpacing:'1px',textTransform:'uppercase',width:'fit-content'}}>Featured</div>
                 <div>
-                  <div style={{fontFamily:'serif',fontSize:'22px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'3px'}}>{featured.full_name?.toUpperCase()}</div>
+                  <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'3px'}}>{featured.full_name?.toUpperCase()}</div>
                   <div style={{fontSize:'11px',color:'rgba(255,255,255,0.5)',marginBottom:'10px'}}>{featured.sport} · {featured.position} · {featured.location}</div>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div style={{display:'flex',gap:'6px'}}>
@@ -71,13 +71,13 @@ export default function HomeAthlete({ profile, onNavigate }) {
         {rest.length > 0 && (
           <>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-              <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>COACHES & TRAINERS</div>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>COACHES & TRAINERS</div>
               <div onClick={() => onNavigate('find')} style={{fontSize:'12px',fontWeight:'700',color:'#E3291A',cursor:'pointer'}}>See all</div>
             </div>
             <div style={{display:'flex',gap:'10px',overflowX:'auto',paddingBottom:'4px',marginBottom:'20px'}}>
               {rest.map(trainer => (
                 <div key={trainer.id} onClick={() => onNavigate('find', trainer)} style={{background:'white',borderRadius:'14px',padding:'12px',minWidth:'140px',cursor:'pointer',border:'1.5px solid #EBEBEB',flexShrink:0}}>
-                  <div style={{width:'48px',height:'48px',borderRadius:'12px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'18px',color:'white',fontWeight:'900',marginBottom:'10px'}}>
+                  <div style={{width:'48px',height:'48px',borderRadius:'12px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'white',fontWeight:'900',marginBottom:'10px'}}>
                     {trainer.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
                   </div>
                   <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>{trainer.full_name}</div>
@@ -97,7 +97,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
         )}
 
         <div style={{marginBottom:'20px'}}>
-          <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>UPCOMING EVENTS</div>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>UPCOMING EVENTS</div>
           {[
             {month:'Jun',day:'06',title:'Summer Hoops Classic',meta:'Mesa, AZ · U16',tag:'Tournament'},
             {month:'Jul',day:'12',title:'Elite Speed & Agility Camp',meta:'Scottsdale, AZ · 3 Days',tag:'Camp'},
@@ -106,7 +106,7 @@ export default function HomeAthlete({ profile, onNavigate }) {
             <div key={i} style={{background:'white',borderRadius:'12px',padding:'12px 14px',display:'flex',gap:'12px',alignItems:'center',border:'1.5px solid #EBEBEB',marginBottom:'8px',cursor:'pointer'}}>
               <div style={{background:'rgba(227,41,26,0.08)',borderRadius:'8px',padding:'6px 8px',textAlign:'center',minWidth:'44px'}}>
                 <div style={{fontSize:'8px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'1px',color:'#E3291A'}}>{event.month}</div>
-                <div style={{fontFamily:'serif',fontSize:'22px',color:'#E3291A',lineHeight:1}}>{event.day}</div>
+                <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#E3291A',lineHeight:1}}>{event.day}</div>
               </div>
               <div style={{flex:1}}>
                 <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>{event.title}</div>

@@ -28,7 +28,7 @@ export default function Auth() {
 
   return (
     <div style={{minHeight:'100vh',background:'#1A1A1A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'24px'}}>
-      <div style={{fontFamily:'serif',fontSize:'42px',fontWeight:'900',color:'white',letterSpacing:'2px',marginBottom:'8px'}}>
+      <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'42px',fontWeight:'900',color:'white',letterSpacing:'2px',marginBottom:'8px'}}>
         PLAY<span style={{color:'#E3291A'}}>MAKER</span>
       </div>
       <div style={{fontSize:'12px',color:'rgba(255,255,255,0.35)',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'40px'}}>

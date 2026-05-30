@@ -25,7 +25,7 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
       duration: selectedDuration.value,
       total_price: total,
       note: note,
-      status: 'confirmed'
+      status: 'pending'
     })
     setLoading(false)
     if (!error) onBooked()
@@ -36,7 +36,7 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
       <div style={{flex:1,overflowY:'auto'}}>
         <div style={{background:'white',padding:'12px 18px',display:'flex',alignItems:'center',gap:'12px',borderBottom:'1px solid #EBEBEB'}}>
           <button onClick={() => setStep('select')} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',color:'#1A1A1A'}}>‹</button>
-          <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Review Booking</div>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Review Booking</div>
         </div>
         <div style={{padding:'20px 18px',display:'flex',flexDirection:'column',gap:'14px'}}>
           <div style={{background:'#1A1A1A',borderRadius:'18px',overflow:'hidden',position:'relative'}}>
@@ -44,7 +44,7 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
             <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'radial-gradient(circle,rgba(227,41,26,0.4) 0%,transparent 65%)'}} />
             <div style={{position:'relative',padding:'20px'}}>
               <div style={{fontSize:'9px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'1.5px',color:'rgba(255,255,255,0.35)',marginBottom:'10px'}}>Session Summary</div>
-              <div style={{fontFamily:'serif',fontSize:'24px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'3px'}}>{trainer.full_name?.toUpperCase()}</div>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'24px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'3px'}}>{trainer.full_name?.toUpperCase()}</div>
               <div style={{fontSize:'11px',color:'rgba(255,255,255,0.45)',marginBottom:'16px'}}>{trainer.sport} · {trainer.position}</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
                 {[
@@ -86,7 +86,7 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
           <div style={{background:'rgba(227,41,26,0.06)',borderRadius:'10px',padding:'10px 12px',border:'1px solid rgba(227,41,26,0.12)'}}>
             <div style={{fontSize:'11px',color:'#E3291A',lineHeight:1.5}}>Free cancellation up to 24 hours before your session.</div>
           </div>
-          <button onClick={handleConfirm} disabled={loading} style={{background:loading?'rgba(227,41,26,0.5)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginBottom:'20px'}}>
+          <button onClick={handleConfirm} disabled={loading} style={{background:loading?'rgba(227,41,26,0.5)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginBottom:'20px'}}>
             {loading ? 'Confirming...' : 'Confirm Booking'}
           </button>
         </div>
@@ -98,17 +98,17 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
     <div style={{flex:1,overflowY:'auto'}}>
       <div style={{background:'white',padding:'12px 18px',display:'flex',alignItems:'center',gap:'12px',borderBottom:'1px solid #EBEBEB'}}>
         <button onClick={onBack} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',color:'#1A1A1A'}}>‹</button>
-        <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Book a Session</div>
+        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Book a Session</div>
       </div>
       <div style={{background:'#1A1A1A',margin:'16px 18px',borderRadius:'14px',overflow:'hidden',position:'relative'}}>
         <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#1a1a1a 0%,#2d0a07 60%,#1a1a1a 100%)'}} />
         <div style={{position:'absolute',top:'-30px',right:'-30px',width:'130px',height:'130px',background:'radial-gradient(circle,rgba(227,41,26,0.35) 0%,transparent 65%)'}} />
         <div style={{position:'relative',padding:'14px 16px',display:'flex',alignItems:'center',gap:'12px'}}>
-          <div style={{width:'44px',height:'44px',borderRadius:'11px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'16px',color:'white',fontWeight:'900',flexShrink:0}}>
+          <div style={{width:'44px',height:'44px',borderRadius:'11px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'white',fontWeight:'900',flexShrink:0}}>
             {trainer.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
           </div>
           <div style={{flex:1}}>
-            <div style={{fontFamily:'serif',fontSize:'16px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'2px'}}>{trainer.full_name}</div>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1,marginBottom:'2px'}}>{trainer.full_name}</div>
             <div style={{fontSize:'10px',color:'rgba(255,255,255,0.45)',display:'flex',gap:'8px'}}>
               <span>{trainer.sport}</span>
               <span>${trainer.trainers?.price_per_hour}/hr</span>
@@ -142,7 +142,7 @@ export default function BookSession({ trainer, session, onBack, onBooked }) {
             ))}
           </div>
         </div>
-        <button onClick={() => setStep('confirm')} disabled={!selectedDate||!selectedTime} style={{background:!selectedDate||!selectedTime?'rgba(227,41,26,0.4)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginBottom:'20px'}}>
+        <button onClick={() => setStep('confirm')} disabled={!selectedDate||!selectedTime} style={{background:!selectedDate||!selectedTime?'rgba(227,41,26,0.4)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginBottom:'20px'}}>
           Review Booking
         </button>
       </div>

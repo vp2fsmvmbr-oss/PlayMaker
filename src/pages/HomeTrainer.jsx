@@ -3,31 +3,34 @@ import { supabase } from '../lib/supabase'
 
 export default function HomeTrainer({ profile, session, onNavigate }) {
   const [bookings, setBookings] = useState([])
+  const [pending, setPending] = useState([])
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  useEffect(() => { fetchData() }, [])
 
   async function fetchData() {
-    const [bookingsRes, messagesRes] = await Promise.all([
-      supabase.from('bookings').select('*, athlete:profiles!bookings_athlete_id_fkey(id,full_name)').eq('trainer_id', session.user.id).gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true}).limit(3),
+    const [bookingsRes, pendingRes, messagesRes] = await Promise.all([
+      supabase.from('bookings').select('*, athlete:profiles!bookings_athlete_id_fkey(id,full_name,sport,position)').eq('trainer_id', session.user.id).eq('status', 'confirmed').gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true}).limit(3),
+      supabase.from('bookings').select('*, athlete:profiles!bookings_athlete_id_fkey(id,full_name,sport,position)').eq('trainer_id', session.user.id).eq('status', 'pending').order('created_at', {ascending:false}),
       supabase.from('messages').select('*, sender:profiles!messages_sender_id_fkey(id,full_name,role)').eq('receiver_id', session.user.id).order('created_at', {ascending:false}).limit(5)
     ])
     if (bookingsRes.data) setBookings(bookingsRes.data)
+    if (pendingRes.data) setPending(pendingRes.data)
     if (messagesRes.data) {
       const seen = new Set()
       const convos = []
       messagesRes.data.forEach(msg => {
-        if (!seen.has(msg.sender_id)) {
-          seen.add(msg.sender_id)
-          convos.push(msg)
-        }
+        if (!seen.has(msg.sender_id)) { seen.add(msg.sender_id); convos.push(msg) }
       })
       setMessages(convos)
     }
     setLoading(false)
+  }
+
+  async function handleBooking(id, status) {
+    await supabase.from('bookings').update({ status }).eq('id', id)
+    fetchData()
   }
 
   return (
@@ -36,8 +39,8 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
         <div style={{fontSize:'11px',color:'#8A8A8A',fontWeight:'500',marginBottom:'2px'}}>
           {new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
         </div>
-        <div style={{fontFamily:'serif',fontSize:'26px',fontWeight:'900',color:'#1A1A1A',lineHeight:1.1,marginBottom:'4px'}}>
-          READY TO<br/><span style={{color:'#E3291A'}}>COACH,</span> {profile?.full_name?.split(' ')[0]?.toUpperCase() || 'COACH'}.
+        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'28px',color:'#1A1A1A',lineHeight:1.1,marginBottom:'4px',letterSpacing:'0.5px'}}>
+          READY TO COACH,<br/><span style={{color:'#E3291A'}}>{profile?.full_name?.split(' ')[0]?.toUpperCase() || 'COACH'}.</span>
         </div>
         <div style={{fontSize:'12px',color:'#8A8A8A'}}>{profile?.position} · {profile?.location}</div>
       </div>
@@ -49,20 +52,60 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
           <div style={{position:'relative',display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'12px'}}>
             {[
               {label:'Upcoming',value:bookings.length},
-              {label:'Rating',value:profile?.trainers?.rating || '5.0'},
-              {label:'Athletes',value:profile?.trainers?.athletes_trained || '0'},
+              {label:'Pending',value:pending.length},
+              {label:'Rating',value:profile?.trainers?.rating||'5.0'},
             ].map((s,i) => (
               <div key={i} style={{textAlign:'center'}}>
-                <div style={{fontFamily:'serif',fontSize:'28px',color:'#E3291A',fontWeight:'900',lineHeight:1}}>{s.value}</div>
+                <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'32px',color:i===1&&pending.length>0?'#f59e0b':'#E3291A',lineHeight:1}}>{s.value}</div>
                 <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.5px',marginTop:'3px'}}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
+        {pending.length > 0 && (
+          <div style={{marginBottom:'20px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px'}}>BOOKING REQUESTS</div>
+              <div style={{background:'#f59e0b',color:'white',fontSize:'10px',fontWeight:'700',padding:'2px 8px',borderRadius:'100px'}}>{pending.length} new</div>
+            </div>
+            {pending.map(booking => (
+              <div key={booking.id} style={{background:'white',borderRadius:'14px',border:'1.5px solid #f59e0b',padding:'14px',marginBottom:'10px',boxShadow:'0 2px 12px rgba(245,158,11,0.1)'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px'}}>
+                  <div>
+                    <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.5px'}}>{booking.athlete?.full_name?.toUpperCase()}</div>
+                    <div style={{fontSize:'11px',color:'#8A8A8A'}}>{booking.athlete?.sport} · {booking.athlete?.position}</div>
+                  </div>
+                  <div style={{background:'rgba(245,158,11,0.1)',color:'#f59e0b',fontSize:'9px',fontWeight:'700',padding:'4px 8px',borderRadius:'100px',border:'1px solid rgba(245,158,11,0.2)'}}>Pending</div>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px',marginBottom:'12px'}}>
+                  {[
+                    {label:'Date',value:new Date(booking.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})},
+                    {label:'Time',value:booking.time},
+                    {label:'Duration',value:`${booking.duration} min`},
+                    {label:'Total',value:`$${booking.total_price}`},
+                  ].map((item,i) => (
+                    <div key={i} style={{background:'#F7F7F5',borderRadius:'8px',padding:'8px 10px'}}>
+                      <div style={{fontSize:'9px',fontWeight:'700',textTransform:'uppercase',color:'#8A8A8A',marginBottom:'2px'}}>{item.label}</div>
+                      <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A'}}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+                {booking.note && (
+                  <div style={{fontSize:'12px',color:'#8A8A8A',marginBottom:'10px',fontStyle:'italic'}}>"{booking.note}"</div>
+                )}
+                <div style={{display:'flex',gap:'8px'}}>
+                  <button onClick={() => handleBooking(booking.id,'confirmed')} style={{flex:1,background:'#22c55e',color:'white',border:'none',borderRadius:'10px',padding:'11px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Accept</button>
+                  <button onClick={() => handleBooking(booking.id,'declined')} style={{flex:1,background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'11px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Decline</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div style={{marginBottom:'20px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-            <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>UPCOMING SESSIONS</div>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px'}}>UPCOMING SESSIONS</div>
             <div onClick={() => onNavigate('calendar')} style={{fontSize:'12px',fontWeight:'700',color:'#E3291A',cursor:'pointer'}}>See all</div>
           </div>
           {loading ? (
@@ -70,12 +113,12 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
           ) : bookings.length === 0 ? (
             <div style={{background:'white',borderRadius:'14px',padding:'20px',border:'1.5px solid #EBEBEB',textAlign:'center'}}>
               <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'6px'}}>No upcoming sessions</div>
-              <div style={{fontSize:'12px',color:'#8A8A8A'}}>Athletes will book sessions through your profile</div>
+              <div style={{fontSize:'12px',color:'#8A8A8A'}}>Accept pending requests to see them here</div>
             </div>
           ) : bookings.map(booking => (
             <div key={booking.id} style={{background:'white',borderRadius:'14px',padding:'14px',border:'1.5px solid #EBEBEB',display:'flex',gap:'12px',alignItems:'center',marginBottom:'8px'}}>
               <div style={{background:'rgba(227,41,26,0.08)',borderRadius:'10px',padding:'8px 10px',textAlign:'center',minWidth:'50px'}}>
-                <div style={{fontFamily:'serif',fontSize:'20px',color:'#E3291A',fontWeight:'900',lineHeight:1}}>{new Date(booking.date).getDate()}</div>
+                <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#E3291A',lineHeight:1}}>{new Date(booking.date).getDate()}</div>
                 <div style={{fontSize:'9px',color:'#E3291A',fontWeight:'700',textTransform:'uppercase'}}>{new Date(booking.date).toLocaleDateString('en-US',{month:'short'})}</div>
               </div>
               <div style={{flex:1}}>
@@ -88,7 +131,7 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
 
         <div style={{marginBottom:'20px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-            <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.3px'}}>RECENT MESSAGES</div>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px'}}>RECENT MESSAGES</div>
             <div onClick={() => onNavigate('messages')} style={{fontSize:'12px',fontWeight:'700',color:'#E3291A',cursor:'pointer'}}>See all</div>
           </div>
           {messages.length === 0 ? (
@@ -98,7 +141,7 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
             </div>
           ) : messages.map((msg,i) => (
             <div key={i} onClick={() => onNavigate('messages')} style={{background:'white',borderRadius:'14px',padding:'14px',border:'1.5px solid #EBEBEB',display:'flex',gap:'12px',alignItems:'center',marginBottom:'8px',cursor:'pointer'}}>
-              <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'linear-gradient(135deg,#1a4a8a,#0a2d5e)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'16px',color:'white',fontWeight:'900',flexShrink:0}}>
+              <div style={{width:'44px',height:'44px',borderRadius:'12px',background:'linear-gradient(135deg,#1a4a8a,#0a2d5e)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'white',flexShrink:0}}>
                 {msg.sender?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
               </div>
               <div style={{flex:1,minWidth:0}}>
@@ -110,7 +153,7 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
         </div>
 
         <div style={{marginBottom:'30px'}}>
-          <button onClick={() => onNavigate('profile')} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'14px',padding:'16px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer'}}>
+          <button onClick={() => onNavigate('profile')} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'14px',padding:'16px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer'}}>
             Edit My Coach Profile
           </button>
         </div>

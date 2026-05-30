@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
+import BlockedUsers from "./BlockedUsers"
 import { supabase } from '../lib/supabase'
 
 export default function AthleteProfile({ session }) {
@@ -50,6 +51,8 @@ export default function AthleteProfile({ session }) {
     }
   }
 
+  const [showBlocked, setShowBlocked] = useState(false)
+  if (showBlocked) return <BlockedUsers session={session} onClose={() => setShowBlocked(false)} />
   if (loading) return <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'#8A8A8A'}}>Loading...</div>
 
   if (editing) {
@@ -57,7 +60,7 @@ export default function AthleteProfile({ session }) {
       <div style={{flex:1,overflowY:'auto'}}>
         <div style={{background:'white',padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #EBEBEB'}}>
           <button onClick={() => setEditing(false)} style={{background:'none',border:'none',fontSize:'20px',cursor:'pointer',color:'#1A1A1A'}}>‹</button>
-          <div style={{fontFamily:'serif',fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Edit Profile</div>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px'}}>Edit Profile</div>
           <button onClick={saveProfile} style={{background:'#E3291A',color:'white',border:'none',borderRadius:'100px',padding:'7px 16px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Save</button>
         </div>
         <div style={{padding:'20px 18px',display:'flex',flexDirection:'column',gap:'12px'}}>
@@ -93,7 +96,7 @@ export default function AthleteProfile({ session }) {
               style={{width:'100%',padding:'12px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'14px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',resize:'none',fontFamily:"'DM Sans', sans-serif"}}
             />
           </div>
-          <button onClick={saveProfile} style={{background:'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'14px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginTop:'8px',marginBottom:'20px'}}>
+          <button onClick={saveProfile} style={{background:'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'14px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginTop:'8px',marginBottom:'20px'}}>
             Save Profile
           </button>
         </div>
@@ -111,14 +114,14 @@ export default function AthleteProfile({ session }) {
           <div style={{fontSize:'10px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'1.5px',color:'#E3291A',marginBottom:'3px'}}>
             {profile?.position || 'Athlete'} · {profile?.sport || 'PlayMaker'}
           </div>
-          <div style={{fontFamily:'serif',fontSize:'28px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1}}>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'28px',color:'white',fontWeight:'900',letterSpacing:'0.5px',lineHeight:1}}>
             {profile?.full_name?.toUpperCase() || 'YOUR NAME'}
           </div>
         </div>
       </div>
 
       <div style={{padding:'0 18px',display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginTop:'-28px',marginBottom:'14px',position:'relative',zIndex:2}}>
-        <div style={{width:'64px',height:'64px',borderRadius:'18px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'24px',color:'white',fontWeight:'900',border:'3px solid #F7F7F5',boxShadow:'0 2px 14px rgba(0,0,0,0.2)'}}>
+        <div style={{width:'64px',height:'64px',borderRadius:'18px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'24px',color:'white',fontWeight:'900',border:'3px solid #F7F7F5',boxShadow:'0 2px 14px rgba(0,0,0,0.2)'}}>
           {profile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase() || 'ZK'}
         </div>
         <button onClick={() => setEditing(true)} style={{background:'#1A1A1A',color:'white',border:'none',borderRadius:'100px',padding:'8px 16px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>
@@ -127,7 +130,7 @@ export default function AthleteProfile({ session }) {
       </div>
 
       <div style={{padding:'0 18px 14px',borderBottom:'1px solid #EBEBEB'}}>
-        <div style={{fontFamily:'serif',fontSize:'22px',color:'#1A1A1A',fontWeight:'900',letterSpacing:'0.5px',marginBottom:'3px'}}>
+        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#1A1A1A',fontWeight:'900',letterSpacing:'0.5px',marginBottom:'3px'}}>
           {profile?.full_name || 'Add your name'}
         </div>
         <div style={{fontSize:'12px',color:'#8A8A8A',marginBottom:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
@@ -150,7 +153,7 @@ export default function AthleteProfile({ session }) {
                   {label:'Vertical',value:profile?.vertical||'—'},
                 ].map((s,i) => (
                   <div key={i} style={{textAlign:'center'}}>
-                    <div style={{fontFamily:'serif',fontSize:'18px',color:'white',fontWeight:'900',lineHeight:1,marginBottom:'3px'}}>{s.value}</div>
+                    <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'white',fontWeight:'900',lineHeight:1,marginBottom:'3px'}}>{s.value}</div>
                     <div style={{fontSize:'8px',color:'rgba(255,255,255,0.35)',fontWeight:'600',textTransform:'uppercase'}}>{s.label}</div>
                   </div>
                 ))}

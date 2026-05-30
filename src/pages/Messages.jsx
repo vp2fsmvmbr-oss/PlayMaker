@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import BlockButton from './BlockButton'
+import BlockedUsers from './BlockedUsers'
 
 export default function Messages({ session, openConvoWith, onConvoOpened }) {
   const [conversations, setConversations] = useState([])
@@ -8,6 +10,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [deleteMode, setDeleteMode] = useState(null)
+  const [showBlocked, setShowBlocked] = useState(false)
   const messagesEndRef = useRef(null)
   const intervalRef = useRef(null)
 
@@ -36,18 +39,25 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
 
   async function fetchConversations() {
     setLoading(true)
+    const { data: blocksData } = await supabase
+      .from('blocks')
+      .select('blocked_id')
+      .eq('blocker_id', session.user.id)
+    const blockedIds = (blocksData || []).map(b => b.blocked_id)
+
     const { data, error } = await supabase
       .from('messages')
       .select('*, sender:profiles!messages_sender_id_fkey(id,full_name,role), receiver:profiles!messages_receiver_id_fkey(id,full_name,role)')
       .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
       .order('created_at', { ascending: false })
+
     if (!error && data) {
       const seen = new Set()
       const convos = []
       data.forEach(msg => {
         const otherId = msg.sender_id === session.user.id ? msg.receiver_id : msg.sender_id
         const otherProfile = msg.sender_id === session.user.id ? msg.receiver : msg.sender
-        if (!seen.has(otherId)) {
+        if (!seen.has(otherId) && !blockedIds.includes(otherId)) {
           seen.add(otherId)
           convos.push({ otherId, otherProfile, lastMessage: msg })
         }
@@ -86,19 +96,22 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
     fetchConversations()
   }
 
+  if (showBlocked) return <BlockedUsers session={session} onClose={() => { setShowBlocked(false); fetchConversations() }} />
+
   if (selectedConvo) {
     return (
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{background:'white',padding:'12px 16px',display:'flex',alignItems:'center',gap:'10px',borderBottom:'1px solid #EBEBEB',flexShrink:0}}>
           <button onClick={() => setSelectedConvo(null)} style={{width:'34px',height:'34px',borderRadius:'50%',background:'#F7F7F5',border:'none',fontSize:'20px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'#1A1A1A'}}>‹</button>
-          <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'14px',color:'white',fontWeight:'900'}}>
+          <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'14px',color:'white'}}>
             {selectedConvo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
           </div>
           <div style={{flex:1}}>
             <div style={{fontSize:'15px',fontWeight:'700',color:'#1A1A1A'}}>{selectedConvo.otherProfile?.full_name}</div>
             <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Active now</div>
           </div>
-          <button onClick={() => { if(window.confirm('Delete this conversation?')) deleteConversation(selectedConvo.otherId); setSelectedConvo(null) }} style={{background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#8A8A8A',padding:'4px'}}>🗑</button>
+          <BlockButton session={session} otherId={selectedConvo.otherId} otherName={selectedConvo.otherProfile?.full_name} />
+          <button onClick={() => { if(window.confirm('Delete this conversation?')) { deleteConversation(selectedConvo.otherId); setSelectedConvo(null) }}} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#8A8A8A',padding:'4px'}}>🗑</button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
           {messages.length === 0 ? (
@@ -109,7 +122,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
           ) : messages.map(msg => (
             <div key={msg.id} style={{display:'flex',flexDirection:msg.sender_id===session.user.id?'row-reverse':'row',gap:'6px',alignItems:'flex-end'}}>
               {msg.sender_id !== session.user.id && (
-                <div style={{width:'26px',height:'26px',borderRadius:'7px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',color:'white',fontWeight:'900',fontFamily:'serif',flexShrink:0}}>
+                <div style={{width:'26px',height:'26px',borderRadius:'7px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',color:'white',fontFamily:"'Bebas Neue', sans-serif",flexShrink:0}}>
                   {selectedConvo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
                 </div>
               )}
@@ -136,7 +149,10 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
   return (
     <div style={{flex:1,overflowY:'auto'}}>
       <div style={{padding:'16px 20px 12px',background:'white',borderBottom:'1px solid #EBEBEB'}}>
-        <div style={{fontFamily:'serif',fontSize:'24px',fontWeight:'900',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'10px'}}>Messages</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',color:'#1A1A1A',letterSpacing:'1px'}}>Messages</div>
+          <div onClick={() => setShowBlocked(true)} style={{fontSize:'12px',fontWeight:'600',color:'#8A8A8A',cursor:'pointer'}}>Blocked</div>
+        </div>
         <div style={{background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'10px',padding:'9px 12px',display:'flex',alignItems:'center',gap:'6px',fontSize:'13px',color:'#8A8A8A'}}>
           Search conversations...
         </div>
@@ -151,7 +167,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
       ) : conversations.map((convo,i) => (
         <div key={i} style={{display:'flex',gap:'12px',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid #EBEBEB',background:'white',position:'relative'}}>
           <div onClick={() => setSelectedConvo(convo)} style={{display:'flex',gap:'12px',alignItems:'center',flex:1,cursor:'pointer'}}>
-            <div style={{width:'48px',height:'48px',borderRadius:'14px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'18px',color:'white',fontWeight:'900',flexShrink:0}}>
+            <div style={{width:'48px',height:'48px',borderRadius:'14px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'white',flexShrink:0}}>
               {convo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
             </div>
             <div style={{flex:1,minWidth:0}}>

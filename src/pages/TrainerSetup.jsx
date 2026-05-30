@@ -46,7 +46,7 @@ export default function TrainerSetup({ session, onComplete }) {
       <div style={{background:'#1A1A1A',padding:'28px 20px 24px',position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',top:'-40px',right:'-40px',width:'180px',height:'180px',background:'radial-gradient(circle,rgba(227,41,26,0.4) 0%,transparent 65%)'}} />
         <div style={{fontSize:'11px',fontWeight:'700',color:'rgba(255,255,255,0.4)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'6px',position:'relative'}}>Welcome to PlayMaker</div>
-        <div style={{fontFamily:'serif',fontSize:'28px',fontWeight:'900',color:'white',lineHeight:1.1,position:'relative',marginBottom:'6px'}}>
+        <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'28px',fontWeight:'900',color:'white',lineHeight:1.1,position:'relative',marginBottom:'6px'}}>
           SET UP YOUR<br/><span style={{color:'#E3291A'}}>COACH PROFILE.</span>
         </div>
         <div style={{fontSize:'12px',color:'rgba(255,255,255,0.4)',position:'relative'}}>Athletes want to see who they're training with</div>
@@ -93,7 +93,7 @@ export default function TrainerSetup({ session, onComplete }) {
           />
         </div>
 
-        <button onClick={handleSave} disabled={loading || !form.full_name || !form.position} style={{background:loading||!form.full_name||!form.position?'rgba(227,41,26,0.4)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:'serif',fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginTop:'4px',marginBottom:'20px'}}>
+        <button onClick={handleSave} disabled={loading || !form.full_name || !form.position} style={{background:loading||!form.full_name||!form.position?'rgba(227,41,26,0.4)':'#E3291A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',fontWeight:'900',letterSpacing:'1px',cursor:'pointer',marginTop:'4px',marginBottom:'20px'}}>
           {loading ? 'Saving...' : 'Launch My Profile'}
         </button>
       </div>
