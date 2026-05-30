@@ -5,6 +5,7 @@ export default function Find({ onSelectTrainer, session }) {
   const [trainers, setTrainers] = useState([])
   const [loading, setLoading] = useState(true)
   const [sport, setSport] = useState('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => { fetchTrainers() }, [])
 
@@ -24,7 +25,18 @@ export default function Find({ onSelectTrainer, session }) {
     setLoading(false)
   }
 
-  const filtered = sport === 'all' ? trainers : trainers.filter(t => t.sport === sport)
+  const filtered = trainers
+    .filter(t => sport === 'all' || t.sport === sport)
+    .filter(t => {
+      if (!search.trim()) return true
+      const q = search.toLowerCase()
+      return (
+        t.full_name?.toLowerCase().includes(q) ||
+        t.position?.toLowerCase().includes(q) ||
+        t.sport?.toLowerCase().includes(q) ||
+        t.location?.toLowerCase().includes(q)
+      )
+    })
 
   return (
     <div style={{flex:1,overflowY:'auto',background:'#F7F7F5'}}>
@@ -36,6 +48,14 @@ export default function Find({ onSelectTrainer, session }) {
               {s === 'all' ? 'All Sports' : s.charAt(0).toUpperCase()+s.slice(1)}
             </button>
           ))}
+        </div>
+        <div style={{marginTop:'10px'}}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder='Search by name, position, location...'
+            style={{width:'100%',padding:'10px 14px',borderRadius:'10px',border:'1.5px solid #EBEBEB',fontSize:'13px',outline:'none',boxSizing:'border-box',background:'#F7F7F5',color:'#1A1A1A'}}
+          />
         </div>
       </div>
       <div style={{padding:'6px 16px 4px',display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:'10px'}}>
