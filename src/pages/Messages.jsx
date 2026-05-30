@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import BlockButton from './BlockButton'
 import BlockedUsers from './BlockedUsers'
 
-export default function Messages({ session, openConvoWith, onConvoOpened }) {
+export default function Messages({ session, openConvoWith, onConvoOpened, onViewProfile }) {
   const [conversations, setConversations] = useState([])
   const [selectedConvo, setSelectedConvo] = useState(null)
   const [messages, setMessages] = useState([])
@@ -106,9 +106,9 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
           <div style={{width:'38px',height:'38px',borderRadius:'10px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'14px',color:'white'}}>
             {selectedConvo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
           </div>
-          <div style={{flex:1}}>
+          <div style={{flex:1,cursor:'pointer'}} onClick={() => onViewProfile && onViewProfile(selectedConvo.otherProfile)}>
             <div style={{fontSize:'15px',fontWeight:'700',color:'#1A1A1A'}}>{selectedConvo.otherProfile?.full_name}</div>
-            <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Active now</div>
+            <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Tap to view profile</div>
           </div>
           <BlockButton session={session} otherId={selectedConvo.otherId} otherName={selectedConvo.otherProfile?.full_name} />
           <button onClick={() => { if(window.confirm('Delete this conversation?')) { deleteConversation(selectedConvo.otherId); setSelectedConvo(null) }}} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#8A8A8A',padding:'4px'}}>🗑</button>

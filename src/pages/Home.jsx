@@ -25,6 +25,7 @@ export default function Home({ session }) {
   const [booked, setBooked] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showBlocked, setShowBlocked] = useState(false)
+  const [viewProfileUser, setViewProfileUser] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => { fetchProfile(); fetchUnread() }, [])
@@ -113,6 +114,22 @@ export default function Home({ session }) {
     )
   }
 
+  if (viewProfileUser) {
+    if (viewProfileUser.role === 'trainer') {
+      return (
+        <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+          <TrainerProfile trainer={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(t) => { setOpenConvoWith(t); setViewProfileUser(null); setActiveTab('messages') }} onBook={(t) => { setBooking(t); setViewProfileUser(null) }} session={session} />
+        </div>
+      )
+    } else {
+      return (
+        <div style={{maxWidth:'430px',margin:'0 auto',height:'100vh',display:'flex',flexDirection:'column',background:'#F7F7F5'}}>
+          <AthleteView athlete={viewProfileUser} onBack={() => setViewProfileUser(null)} onMessage={(a) => { setOpenConvoWith(a); setViewProfileUser(null); setActiveTab('messages') }} />
+        </div>
+      )
+    }
+  }
+
   const isTrainer = profile?.role === 'trainer'
 
   function renderContent() {
@@ -124,7 +141,7 @@ export default function Home({ session }) {
     }
     if (activeTab === "find") return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} session={session} />
     if (activeTab === 'athletes') return <Athletes onSelectAthlete={(a) => setSelectedAthlete(a)} />
-    if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} />
+    if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} onViewProfile={(user) => setViewProfileUser(user)} />
     if (activeTab === 'calendar') return <Calendar session={session} profile={profile} />
     if (activeTab === 'profile' && isTrainer) {
       return (
