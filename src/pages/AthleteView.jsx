@@ -1,4 +1,9 @@
+import { useState } from 'react'
+import ClipsViewer from './ClipsViewer'
+
 export default function AthleteView({ athlete, onBack, onMessage }) {
+  const [activeTab, setActiveTab] = useState('profile')
+
   return (
     <div style={{flex:1,overflowY:'auto'}}>
       <div style={{background:'#1A1A1A',height:'180px',position:'relative',overflow:'hidden'}}>
@@ -15,6 +20,7 @@ export default function AthleteView({ athlete, onBack, onMessage }) {
           </div>
         </div>
       </div>
+
       <div style={{padding:'0 18px',display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginTop:'-28px',marginBottom:'14px',position:'relative',zIndex:2}}>
         <div style={{width:'64px',height:'64px',borderRadius:'18px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Bebas Neue', sans-serif",fontSize:'24px',color:'white',border:'3px solid #F7F7F5',boxShadow:'0 2px 14px rgba(0,0,0,0.2)'}}>
           {athlete.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase() || '?'}
@@ -23,6 +29,7 @@ export default function AthleteView({ athlete, onBack, onMessage }) {
           Message Athlete
         </button>
       </div>
+
       <div style={{padding:'0 18px 14px',borderBottom:'1px solid #EBEBEB'}}>
         <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'3px'}}>{athlete.full_name}</div>
         <div style={{fontSize:'12px',color:'#8A8A8A',marginBottom:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
@@ -58,16 +65,32 @@ export default function AthleteView({ athlete, onBack, onMessage }) {
           {athlete.school && <div style={{background:'#F7F7F5',color:'#1A1A1A',fontSize:'10px',fontWeight:'600',padding:'5px 10px',borderRadius:'100px',border:'1.5px solid #EBEBEB'}}>{athlete.school}</div>}
         </div>
       </div>
-      {athlete.bio && (
-        <div style={{padding:'14px 18px',borderBottom:'1px solid #EBEBEB'}}>
-          <div style={{fontSize:'11px',fontWeight:'700',color:'#8A8A8A',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>About</div>
-          <div style={{fontSize:'13px',color:'#1A1A1A',lineHeight:1.6}}>{athlete.bio}</div>
-        </div>
-      )}
-      <div style={{padding:'18px'}}>
-        <button onClick={() => onMessage(athlete)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer'}}>
-          Message {athlete.full_name?.split(' ')[0]}
-        </button>
+
+      <div style={{display:'flex',borderBottom:'1px solid #EBEBEB',background:'white'}}>
+        {['profile','clips'].map(tab => (
+          <div key={tab} onClick={() => setActiveTab(tab)} style={{flex:1,padding:'12px 6px',textAlign:'center',fontSize:'11px',fontWeight:'700',color:activeTab===tab?'#E3291A':'#8A8A8A',cursor:'pointer',borderBottom:activeTab===tab?'2px solid #E3291A':'2px solid transparent',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+            {tab}
+          </div>
+        ))}
+      </div>
+
+      <div style={{padding:'14px 18px 80px'}}>
+        {activeTab === 'profile' && (
+          <>
+            {athlete.bio && (
+              <div style={{marginBottom:'16px'}}>
+                <div style={{fontSize:'11px',fontWeight:'700',color:'#8A8A8A',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'8px'}}>About</div>
+                <div style={{fontSize:'13px',color:'#1A1A1A',lineHeight:1.6}}>{athlete.bio}</div>
+              </div>
+            )}
+            <button onClick={() => onMessage(athlete)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer'}}>
+              Message {athlete.full_name?.split(' ')[0]}
+            </button>
+          </>
+        )}
+        {activeTab === 'clips' && (
+          <ClipsViewer userId={athlete.id} />
+        )}
       </div>
     </div>
   )

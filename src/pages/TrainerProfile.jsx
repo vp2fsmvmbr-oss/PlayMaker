@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import ClipsViewer from './ClipsViewer'
 
 export default function TrainerProfile({ trainer, onBack, onMessage, onBook }) {
   const [activeTab, setActiveTab] = useState('reviews')
@@ -102,12 +103,7 @@ export default function TrainerProfile({ trainer, onBack, onMessage, onBook }) {
             <div style={{fontSize:'12px',color:'rgba(255,255,255,0.7)',lineHeight:1.6,position:'relative'}}>{fullTrainer.bio||'This coach has not added their philosophy yet.'}</div>
           </div>
         )}
-        {activeTab==='clips' && (
-          <div style={{textAlign:'center',padding:'30px 0',color:'#8A8A8A'}}>
-            <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A',marginBottom:'6px'}}>No clips yet</div>
-            <div style={{fontSize:'12px'}}>Highlight videos coming soon</div>
-          </div>
-        )}
+        {activeTab==='clips' && <ClipsViewer userId={fullTrainer.id} />}
         {activeTab==='availability' && (
           <div style={{textAlign:'center',padding:'20px 0'}}>
             <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A',marginBottom:'8px'}}>Ready to Book?</div>

@@ -16,6 +16,7 @@ import TrainerProfileEdit from './TrainerProfileEdit'
 import LeaveReview from './LeaveReview'
 import AthleteOnboarding from './AthleteOnboarding'
 import ReportUser from './ReportUser'
+import ClipsManager from './ClipsManager'
 import SetAvailability from './SetAvailability'
 import BlockedUsers from './BlockedUsers'
 
@@ -34,6 +35,7 @@ export default function Home({ session }) {
   const [reviewBooking, setReviewBooking] = useState(null)
   const [reportUser, setReportUser] = useState(null)
   const [settingAvailability, setSettingAvailability] = useState(false)
+  const [managingClips, setManagingClips] = useState(false)
   const [viewProfileUser, setViewProfileUser] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -115,6 +117,14 @@ export default function Home({ session }) {
     )
   }
 
+  if (managingClips) {
+    return (
+      <div style={{display:"flex",flexDirection:"column",height:"100%",background:"#F7F7F5"}}>
+        <ClipsManager session={session} onBack={() => setManagingClips(false)} />
+      </div>
+    )
+  }
+
   if (settingAvailability) {
     return <SetAvailability session={session} onBack={() => setSettingAvailability(false)} />
   }
@@ -180,11 +190,12 @@ export default function Home({ session }) {
           )}
           <button onClick={() => setShowBlocked(true)} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}>Blocked Users</button>
           <button onClick={() => setEditingProfile(true)} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer',marginTop:'8px'}}>Edit Profile</button>
+          <button onClick={() => setManagingClips(true)} style={{width:'100%',background:'#F7F7F5',color:'#1A1A1A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'15px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer',marginTop:'8px'}}>My Clips</button>
           <button onClick={handleSignOut} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}>Sign Out</button>
         </div>
       )
     }
-    if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} />
+    if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} onManageClips={() => setManagingClips(true)} />
     if (activeTab === 'home' && isTrainer) return <HomeTrainer profile={profile} session={session} onNavigate={handleNavigate} />
     return <HomeAthlete profile={profile} onNavigate={handleNavigate} />
   }
