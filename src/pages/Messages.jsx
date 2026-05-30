@@ -7,12 +7,11 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
+  const [deleteMode, setDeleteMode] = useState(null)
   const messagesEndRef = useRef(null)
   const intervalRef = useRef(null)
 
-  useEffect(() => {
-    fetchConversations()
-  }, [])
+  useEffect(() => { fetchConversations() }, [])
 
   useEffect(() => {
     if (openConvoWith) {
@@ -27,12 +26,8 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
       return
     }
     fetchMessages(selectedConvo)
-    intervalRef.current = setInterval(() => {
-      fetchMessages(selectedConvo)
-    }, 3000)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
+    intervalRef.current = setInterval(() => { fetchMessages(selectedConvo) }, 3000)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [selectedConvo])
 
   useEffect(() => {
@@ -84,6 +79,13 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
     fetchConversations()
   }
 
+  async function deleteConversation(otherId) {
+    await supabase.from('messages').delete().eq('sender_id', session.user.id).eq('receiver_id', otherId)
+    await supabase.from('messages').delete().eq('sender_id', otherId).eq('receiver_id', session.user.id)
+    setDeleteMode(null)
+    fetchConversations()
+  }
+
   if (selectedConvo) {
     return (
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
@@ -96,6 +98,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
             <div style={{fontSize:'15px',fontWeight:'700',color:'#1A1A1A'}}>{selectedConvo.otherProfile?.full_name}</div>
             <div style={{fontSize:'11px',color:'#22c55e',fontWeight:'600'}}>Active now</div>
           </div>
+          <button onClick={() => { if(window.confirm('Delete this conversation?')) deleteConversation(selectedConvo.otherId); setSelectedConvo(null) }} style={{background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#8A8A8A',padding:'4px'}}>🗑</button>
         </div>
         <div style={{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:'10px'}}>
           {messages.length === 0 ? (
@@ -123,13 +126,7 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
           <div ref={messagesEndRef} />
         </div>
         <div style={{background:'white',borderTop:'1px solid #EBEBEB',padding:'10px 14px 24px',display:'flex',gap:'8px',alignItems:'center',flexShrink:0}}>
-          <input
-            value={newMessage}
-            onChange={e => setNewMessage(e.target.value)}
-            onKeyDown={e => e.key==='Enter' && sendMessage()}
-            placeholder={`Message ${selectedConvo.otherProfile?.full_name?.split(' ')[0]}...`}
-            style={{flex:1,background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'22px',padding:'10px 14px',fontSize:'13px',outline:'none',color:'#1A1A1A'}}
-          />
+          <input value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key==='Enter' && sendMessage()} placeholder={`Message ${selectedConvo.otherProfile?.full_name?.split(' ')[0]}...`} style={{flex:1,background:'#F7F7F5',border:'1.5px solid #EBEBEB',borderRadius:'22px',padding:'10px 14px',fontSize:'13px',outline:'none',color:'#1A1A1A'}} />
           <button onClick={sendMessage} style={{width:'40px',height:'40px',background:'#E3291A',border:'none',borderRadius:'50%',color:'white',fontSize:'18px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>↑</button>
         </div>
       </div>
@@ -152,17 +149,27 @@ export default function Messages({ session, openConvoWith, onConvoOpened }) {
           <div style={{fontSize:'12px',color:'#8A8A8A'}}>Find a coach and send them a message to get started</div>
         </div>
       ) : conversations.map((convo,i) => (
-        <div key={i} onClick={() => setSelectedConvo(convo)} style={{display:'flex',gap:'12px',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid #EBEBEB',cursor:'pointer',background:'white'}}>
-          <div style={{width:'48px',height:'48px',borderRadius:'14px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'18px',color:'white',fontWeight:'900',flexShrink:0}}>
-            {convo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
-          </div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
-              <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A'}}>{convo.otherProfile?.full_name}</div>
-              <div style={{fontSize:'10px',color:'#8A8A8A'}}>{new Date(convo.lastMessage.created_at).toLocaleDateString()}</div>
+        <div key={i} style={{display:'flex',gap:'12px',alignItems:'center',padding:'14px 20px',borderBottom:'1px solid #EBEBEB',background:'white',position:'relative'}}>
+          <div onClick={() => setSelectedConvo(convo)} style={{display:'flex',gap:'12px',alignItems:'center',flex:1,cursor:'pointer'}}>
+            <div style={{width:'48px',height:'48px',borderRadius:'14px',background:'linear-gradient(135deg,#E3291A,#9a1c10)',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'serif',fontSize:'18px',color:'white',fontWeight:'900',flexShrink:0}}>
+              {convo.otherProfile?.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase()}
             </div>
-            <div style={{fontSize:'12px',color:'#8A8A8A',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{convo.lastMessage.content}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'2px'}}>
+                <div style={{fontSize:'14px',fontWeight:'700',color:'#1A1A1A'}}>{convo.otherProfile?.full_name}</div>
+                <div style={{fontSize:'10px',color:'#8A8A8A'}}>{new Date(convo.lastMessage.created_at).toLocaleDateString()}</div>
+              </div>
+              <div style={{fontSize:'12px',color:'#8A8A8A',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{convo.lastMessage.content}</div>
+            </div>
           </div>
+          {deleteMode === convo.otherId ? (
+            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+              <button onClick={() => deleteConversation(convo.otherId)} style={{background:'#E3291A',color:'white',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>Delete</button>
+              <button onClick={() => setDeleteMode(null)} style={{background:'#F7F7F5',color:'#8A8A8A',border:'none',borderRadius:'8px',padding:'6px 10px',fontSize:'11px',fontWeight:'700',cursor:'pointer'}}>Cancel</button>
+            </div>
+          ) : (
+            <button onClick={() => setDeleteMode(convo.otherId)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'16px',color:'#8A8A8A',padding:'4px',flexShrink:0}}>🗑</button>
+          )}
         </div>
       ))}
     </div>
