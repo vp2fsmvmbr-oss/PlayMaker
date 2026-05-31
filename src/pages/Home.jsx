@@ -16,6 +16,9 @@ import TrainerProfileEdit from './TrainerProfileEdit'
 import LeaveReview from './LeaveReview'
 import AthleteOnboarding from './AthleteOnboarding'
 import ReportUser from './ReportUser'
+import RescheduleSession from './RescheduleSession'
+import CreateGroupSession from './CreateGroupSession'
+import GroupSessions from './GroupSessions'
 import ClipsManager from './ClipsManager'
 import SetAvailability from './SetAvailability'
 import BlockedUsers from './BlockedUsers'
@@ -34,6 +37,9 @@ export default function Home({ session }) {
   const [editingProfile, setEditingProfile] = useState(false)
   const [reviewBooking, setReviewBooking] = useState(null)
   const [reportUser, setReportUser] = useState(null)
+  const [reschedulingBooking, setReschedulingBooking] = useState(null)
+  const [creatingGroupSession, setCreatingGroupSession] = useState(false)
+  const [viewingGroupSessions, setViewingGroupSessions] = useState(false)
   const [settingAvailability, setSettingAvailability] = useState(false)
   const [managingClips, setManagingClips] = useState(false)
   const [viewProfileUser, setViewProfileUser] = useState(null)
@@ -129,6 +135,30 @@ export default function Home({ session }) {
     return <SetAvailability session={session} onBack={() => setSettingAvailability(false)} />
   }
 
+  if (creatingGroupSession) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
+        <CreateGroupSession session={session} profile={profile} onBack={() => setCreatingGroupSession(false)} onCreated={() => { setCreatingGroupSession(false); setActiveTab('calendar') }} />
+      </div>
+    )
+  }
+
+  if (viewingGroupSessions) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
+        <GroupSessions session={session} onBack={() => setViewingGroupSessions(false)} />
+      </div>
+    )
+  }
+
+  if (reschedulingBooking) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
+        <RescheduleSession booking={reschedulingBooking} session={session} onBack={() => setReschedulingBooking(null)} onRescheduled={() => { setReschedulingBooking(null); setActiveTab('calendar') }} />
+      </div>
+    )
+  }
+
   if (reportUser) {
     return <ReportUser session={session} reportedId={reportUser.id} reportedName={reportUser.full_name} onBack={() => setReportUser(null)} />
   }
@@ -161,7 +191,7 @@ export default function Home({ session }) {
     if (activeTab === "find") return <Find onSelectTrainer={(t) => setSelectedTrainer(t)} session={session} />
     if (activeTab === 'athletes') return <Athletes onSelectAthlete={(a) => setSelectedAthlete(a)} />
     if (activeTab === 'messages') return <Messages session={session} openConvoWith={openConvoWith} onConvoOpened={() => setOpenConvoWith(null)} onViewProfile={(user) => setViewProfileUser(user)} onReport={(user) => setReportUser(user)} />
-    if (activeTab === 'calendar') return <Calendar session={session} profile={profile} onReview={(b) => setReviewBooking(b)} onSetAvailability={() => setSettingAvailability(true)} />
+    if (activeTab === 'calendar') return <Calendar session={session} profile={profile} onReview={(b) => setReviewBooking(b)} onSetAvailability={() => setSettingAvailability(true)} onReschedule={(b) => setReschedulingBooking(b)} />
     if (activeTab === 'profile' && isTrainer) {
       return (
         <div style={{flex:1,overflowY:'auto',padding:'20px'}}>
@@ -196,8 +226,8 @@ export default function Home({ session }) {
       )
     }
     if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} onManageClips={() => setManagingClips(true)} />
-    if (activeTab === 'home' && isTrainer) return <HomeTrainer profile={profile} session={session} onNavigate={handleNavigate} />
-    return <HomeAthlete profile={profile} onNavigate={handleNavigate} />
+    if (activeTab === 'home' && isTrainer) return <HomeTrainer profile={profile} session={session} onNavigate={handleNavigate} onCreateGroup={() => setCreatingGroupSession(true)} onViewAthlete={(a) => { setSelectedAthlete(a); setActiveTab('athletes') }} />
+    return <HomeAthlete profile={profile} onNavigate={handleNavigate} onViewGroupSessions={() => setViewingGroupSessions(true)} />
   }
 
   return (

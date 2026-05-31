@@ -1,11 +1,24 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function HomeAthlete({ profile, onNavigate }) {
+export default function HomeAthlete({ profile, onNavigate, onViewGroupSessions }) {
   const [trainers, setTrainers] = useState([])
+  const [groupSessions, setGroupSessions] = useState([])
+  const [loading, setLoading] = useState(true)
   const [sport, setSport] = useState('all')
 
-  useEffect(() => { fetchTrainers() }, [])
+  useEffect(() => { fetchTrainers(); fetchGroupSessions() }, [])
+
+  async function fetchGroupSessions() {
+    const { data } = await supabase
+      .from('group_sessions')
+      .select('*, trainer:profiles!group_sessions_trainer_id_fkey(id,full_name)')
+      .eq('status', 'open')
+      .gte('date', new Date().toISOString().split('T')[0])
+      .order('date', { ascending: true })
+      .limit(5)
+    if (data) setGroupSessions(data)
+  }
 
   async function fetchTrainers() {
     const { data } = await supabase
@@ -101,11 +114,31 @@ export default function HomeAthlete({ profile, onNavigate }) {
         )}
 
         <div style={{marginBottom:'20px'}}>
-          <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>UPCOMING EVENTS</div>
-          <div style={{background:'white',borderRadius:'14px',border:'1.5px solid #EBEBEB',padding:'20px',textAlign:'center'}}>
-            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'6px'}}>Events Coming Soon</div>
-            <div style={{fontSize:'12px',color:'#8A8A8A',lineHeight:1.5}}>Local tournaments, camps, and league registrations will appear here.</div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px'}}>LOCAL EVENTS</div>
+            <div onClick={onViewGroupSessions} style={{fontSize:'12px',fontWeight:'700',color:'#E3291A',cursor:'pointer'}}>See all</div>
           </div>
+          {groupSessions.length === 0 ? (
+            <div style={{background:'white',borderRadius:'14px',border:'1.5px solid #EBEBEB',padding:'20px',textAlign:'center'}}>
+              <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.5px',marginBottom:'6px'}}>No Events Yet</div>
+              <div style={{fontSize:'12px',color:'#8A8A8A',lineHeight:1.5}}>Group training sessions and local events will appear here.</div>
+            </div>
+          ) : groupSessions.map(gs => (
+            <div key={gs.id} onClick={onViewGroupSessions} style={{background:'white',borderRadius:'12px',padding:'12px 14px',display:'flex',gap:'12px',alignItems:'center',border:'1.5px solid #EBEBEB',marginBottom:'8px',cursor:'pointer'}}>
+              <div style={{background:'rgba(227,41,26,0.08)',borderRadius:'8px',padding:'6px 8px',textAlign:'center',minWidth:'44px',flexShrink:0}}>
+                <div style={{fontSize:'8px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'1px',color:'#E3291A'}}>{new Date(gs.date).toLocaleDateString('en-US',{month:'short'})}</div>
+                <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'22px',color:'#E3291A',lineHeight:1}}>{new Date(gs.date).getDate()}</div>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A',marginBottom:'2px'}}>{gs.title}</div>
+                <div style={{fontSize:'10px',color:'#8A8A8A'}}>with {gs.trainer?.full_name} · {gs.time}</div>
+                <div style={{display:'flex',gap:'6px',marginTop:'4px'}}>
+                  <div style={{background:'rgba(227,41,26,0.08)',color:'#E3291A',fontSize:'9px',fontWeight:'700',padding:'2px 7px',borderRadius:'100px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Group</div>
+                  <div style={{background:'#F7F7F5',color:'#8A8A8A',fontSize:'9px',fontWeight:'700',padding:'2px 7px',borderRadius:'100px'}}>${gs.price_per_athlete}/athlete · {gs.max_athletes - gs.current_athletes} spots left</div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

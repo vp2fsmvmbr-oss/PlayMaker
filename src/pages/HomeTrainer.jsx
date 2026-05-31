@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function HomeTrainer({ profile, session, onNavigate }) {
+export default function HomeTrainer({ profile, session, onNavigate, onCreateGroup, onViewAthlete }) {
   const [bookings, setBookings] = useState([])
   const [pending, setPending] = useState([])
   const [messages, setMessages] = useState([])
+  const [groupSessions, setGroupSessions] = useState([])
+  const [gsAthletes, setGsAthletes] = useState({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { fetchData() }, [])
 
   async function fetchData() {
+    const gsRes = await supabase.from('group_sessions').select('*').eq('trainer_id', session.user.id).gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true})
+    if (gsRes.data) {
+      setGroupSessions(gsRes.data)
+      for (const gs of gsRes.data) {
+        const { data: athletes } = await supabase
+          .from('group_session_athletes')
+          .select('*, athlete:profiles!group_session_athletes_athlete_id_fkey(id,full_name)')
+          .eq('session_id', gs.id)
+        if (athletes) setGsAthletes(prev => ({...prev, [gs.id]: athletes}))
+      }
+    }
     const [bookingsRes, pendingRes, messagesRes] = await Promise.all([
       supabase.from('bookings').select('*, athlete:profiles!bookings_athlete_id_fkey(id,full_name,sport,position)').eq('trainer_id', session.user.id).eq('status', 'confirmed').gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true}).limit(3),
       supabase.from('bookings').select('*, athlete:profiles!bookings_athlete_id_fkey(id,full_name,sport,position)').eq('trainer_id', session.user.id).eq('status', 'pending').order('created_at', {ascending:false}),
@@ -156,7 +169,41 @@ export default function HomeTrainer({ profile, session, onNavigate }) {
           <button onClick={() => onNavigate('profile')} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'14px',padding:'16px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer'}}>
             Edit My Coach Profile
           </button>
+          <button onClick={onCreateGroup} style={{width:'100%',background:'rgba(227,41,26,0.08)',color:'#E3291A',border:'1.5px solid rgba(227,41,26,0.2)',borderRadius:'14px',padding:'16px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',letterSpacing:'1px',cursor:'pointer',marginTop:'8px'}}>
+            + Create Group Session
+          </button>
         </div>
+
+        {groupSessions.length > 0 && (
+          <div style={{marginBottom:'20px',paddingLeft:'20px',paddingRight:'20px'}}>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'18px',color:'#1A1A1A',letterSpacing:'0.3px',marginBottom:'12px'}}>MY GROUP SESSIONS</div>
+            {groupSessions.map(gs => (
+              <div key={gs.id} style={{background:'white',borderRadius:'14px',border:'1.5px solid #EBEBEB',padding:'14px',marginBottom:'8px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'8px'}}>
+                  <div>
+                    <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'#1A1A1A',letterSpacing:'0.5px'}}>{gs.title}</div>
+                    <div style={{fontSize:'11px',color:'#8A8A8A'}}>{new Date(gs.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} · {gs.time}</div>
+                  </div>
+                  <div style={{background:gs.current_athletes>=gs.max_athletes?'rgba(227,41,26,0.08)':'rgba(34,197,94,0.1)',color:gs.current_athletes>=gs.max_athletes?'#E3291A':'#22c55e',fontSize:'10px',fontWeight:'700',padding:'4px 8px',borderRadius:'100px'}}>
+                    {gs.current_athletes}/{gs.max_athletes} athletes
+                  </div>
+                </div>
+                <div style={{background:'#EBEBEB',borderRadius:'100px',height:'4px',overflow:'hidden',marginBottom:'8px'}}>
+                  <div style={{background:'#E3291A',height:'100%',width:`${(gs.current_athletes/gs.max_athletes)*100}%`,borderRadius:'100px'}} />
+                </div>
+                {gsAthletes[gs.id]?.length > 0 && (
+                  <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                    {gsAthletes[gs.id].map(a => (
+                      <div key={a.id} onClick={() => onViewAthlete && onViewAthlete(a.athlete)} style={{background:'rgba(227,41,26,0.08)',color:'#E3291A',fontSize:'10px',fontWeight:'600',padding:'3px 8px',borderRadius:'100px',border:'1px solid rgba(227,41,26,0.15)',cursor:'pointer'}}>
+                        {a.athlete?.full_name?.split(' ')[0]}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

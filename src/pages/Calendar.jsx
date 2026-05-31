@@ -2,13 +2,41 @@ import { useState, useEffect } from 'react'
 import LeaveReview from './LeaveReview'
 import { supabase } from '../lib/supabase'
 
-export default function Calendar({ session, profile, onReview, onSetAvailability }) {
+export default function Calendar({ session, profile, onReview, onSetAvailability, onReschedule }) {
   const [view, setView] = useState('upcoming')
   const [bookings, setBookings] = useState([])
+  const [groupSessions, setGroupSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const isTrainer = profile?.role === 'trainer'
 
-  useEffect(() => { fetchBookings() }, [])
+  useEffect(() => { fetchBookings(); fetchGroupSessions() }, [])
+
+  async function fetchGroupSessions() {
+    if (isTrainer) {
+      const { data } = await supabase
+        .from('group_sessions')
+        .select('*')
+        .eq('trainer_id', session.user.id)
+        .gte('date', new Date().toISOString().split('T')[0])
+        .order('date', {ascending:true})
+      if (data) setGroupSessions(data)
+    } else {
+      const { data: joined } = await supabase
+        .from('group_session_athletes')
+        .select('session_id')
+        .eq('athlete_id', session.user.id)
+      if (joined && joined.length > 0) {
+        const ids = joined.map(j => j.session_id)
+        const { data } = await supabase
+          .from('group_sessions')
+          .select('*, trainer:profiles!group_sessions_trainer_id_fkey(id,full_name,sport)')
+          .in('id', ids)
+          .gte('date', new Date().toISOString().split('T')[0])
+          .order('date', {ascending:true})
+        if (data) setGroupSessions(data)
+      }
+    }
+  }
 
   async function fetchBookings() {
     setLoading(true)
@@ -103,13 +131,15 @@ export default function Calendar({ session, profile, onReview, onSetAvailability
           </div>
         )}
         {!isTrainer && booking.status === 'pending' && (
-          <div style={{padding:'0 18px 16px'}}>
-            <button onClick={() => updateBooking(booking,'declined')} style={{width:'100%',background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Cancel Request</button>
+          <div style={{padding:'0 18px 16px',display:'flex',gap:'8px'}}>
+            <button onClick={() => onReschedule && onReschedule(booking)} style={{flex:1,background:'#1A1A1A',color:'white',border:'none',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Reschedule</button>
+            <button onClick={() => updateBooking(booking,'declined')} style={{flex:1,background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Cancel</button>
           </div>
         )}
         {!isTrainer && booking.status === 'confirmed' && new Date(booking.date) >= new Date() && (
-          <div style={{padding:'0 18px 16px'}}>
-            <button onClick={() => updateBooking(booking,'declined')} style={{width:'100%',background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Cancel Session</button>
+          <div style={{padding:'0 18px 16px',display:'flex',gap:'8px'}}>
+            <button onClick={() => onReschedule && onReschedule(booking)} style={{flex:1,background:'#1A1A1A',color:'white',border:'none',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Reschedule</button>
+            <button onClick={() => updateBooking(booking,'declined')} style={{flex:1,background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'10px',padding:'12px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>Cancel</button>
           </div>
         )}
         {!isTrainer && booking.status === 'confirmed' && new Date(booking.date) < new Date() && (
@@ -138,6 +168,35 @@ export default function Calendar({ session, profile, onReview, onSetAvailability
         </div>
       </div>
       <div style={{padding:'16px 18px 80px'}}>
+        {view === 'upcoming' && groupSessions.length > 0 && (
+          <div style={{marginBottom:'16px'}}>
+            <div style={{fontSize:'11px',fontWeight:'700',color:'#8A8A8A',textTransform:'uppercase',letterSpacing:'1px',marginBottom:'10px'}}>{isTrainer ? 'My Group Sessions' : 'Group Sessions'}</div>
+            {groupSessions.map(gs => (
+              <div key={gs.id} style={{background:'white',borderRadius:'14px',border:'1.5px solid rgba(227,41,26,0.2)',overflow:'hidden',marginBottom:'10px'}}>
+                <div style={{background:'#1A1A1A',padding:'12px 16px',position:'relative',overflow:'hidden'}}>
+                  <div style={{position:'absolute',top:'-20px',right:'-20px',width:'100px',height:'100px',background:'radial-gradient(circle,rgba(227,41,26,0.3) 0%,transparent 65%)'}} />
+                  <div style={{position:'relative'}}>
+                    <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'white',letterSpacing:'0.5px'}}>{gs.title.toUpperCase()}</div>
+                    <div style={{fontSize:'10px',color:'rgba(255,255,255,0.4)'}}>with {gs.trainer?.full_name}</div>
+                  </div>
+                </div>
+                <div style={{padding:'12px 16px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
+                  {[
+                    {label:'Date',value:new Date(gs.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})},
+                    {label:'Time',value:gs.time},
+                    {label:'Duration',value:`${gs.duration} min`},
+                    {label:isTrainer?'Athletes':'Spots',value:`${gs.current_athletes}/${gs.max_athletes}`},
+                  ].map((item,i) => (
+                    <div key={i} style={{background:'#F7F7F5',borderRadius:'8px',padding:'8px 10px'}}>
+                      <div style={{fontSize:'9px',fontWeight:'700',textTransform:'uppercase',color:'#8A8A8A',marginBottom:'2px'}}>{item.label}</div>
+                      <div style={{fontSize:'13px',fontWeight:'700',color:'#1A1A1A'}}>{item.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {loading ? (
           <div style={{textAlign:'center',padding:'40px',color:'#8A8A8A'}}>Loading...</div>
         ) : view === 'pending' ? (
