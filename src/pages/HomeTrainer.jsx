@@ -7,12 +7,41 @@ export default function HomeTrainer({ profile, session, onNavigate, onCreateGrou
   const [messages, setMessages] = useState([])
   const [groupSessions, setGroupSessions] = useState([])
   const [gsAthletes, setGsAthletes] = useState({})
+  const [cancellingGs, setCancellingGs] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { fetchData() }, [])
 
+  async function cancelGroupSession(gs) {
+    setCancellingGs(gs.id)
+    console.log('cancelling session', gs.id)
+
+    // Get all athletes who joined
+    const { data: athletes } = await supabase
+      .from('group_session_athletes')
+      .select('athlete_id')
+      .eq('session_id', gs.id)
+
+    // Notify each athlete
+    if (athletes && athletes.length > 0) {
+      const notifications = athletes.map(a => ({
+        user_id: a.athlete_id,
+        title: 'Group Session Cancelled',
+        body: `"${gs.title}" on ${new Date(gs.date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})} has been cancelled by the coach.`
+      }))
+      await supabase.from('notifications').insert(notifications)
+    }
+
+    // Cancel the session
+    const { error } = await supabase.from('group_sessions').update({ status: 'cancelled' }).eq('id', gs.id)
+    console.log('cancel result:', error)
+    setCancellingGs(null)
+    console.log('refreshing data')
+    await fetchData()
+  }
+
   async function fetchData() {
-    const gsRes = await supabase.from('group_sessions').select('*').eq('trainer_id', session.user.id).gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true})
+    const gsRes = await supabase.from('group_sessions').select('*').eq('trainer_id', session.user.id).neq('status', 'cancelled').gte('date', new Date().toISOString().split('T')[0]).order('date', {ascending:true})
     if (gsRes.data) {
       setGroupSessions(gsRes.data)
       for (const gs of gsRes.data) {
@@ -200,6 +229,13 @@ export default function HomeTrainer({ profile, session, onNavigate, onCreateGrou
                     ))}
                   </div>
                 )}
+                <button
+                  onClick={() => cancelGroupSession(gs)}
+                  disabled={cancellingGs === gs.id}
+                  style={{width:'100%',background:'#F7F7F5',color:'#E3291A',border:'1.5px solid #E3291A',borderRadius:'8px',padding:'8px',fontSize:'12px',fontWeight:'700',cursor:'pointer',marginTop:'8px'}}
+                >
+                  {cancellingGs === gs.id ? 'Cancelling...' : 'Cancel Session'}
+                </button>
               </div>
             ))}
           </div>
