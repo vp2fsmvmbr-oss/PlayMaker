@@ -92,8 +92,11 @@ export default function Find({ onSelectTrainer, session }) {
             <div style={{position:'relative',padding:'20px',display:'flex',flexDirection:'column',gap:'14px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                 <div style={{flex:1}}>
-                  <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',color:'white',letterSpacing:'1px',lineHeight:1,marginBottom:'4px'}}>
-                    {trainer.full_name?.toUpperCase() || 'TRAINER'}
+                  <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                    <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'26px',color:'white',letterSpacing:'1px',lineHeight:1}}>
+                      {trainer.full_name?.toUpperCase() || 'TRAINER'}
+                    </div>
+                    {trainer.trainers?.verified && <div style={{background:'#3b82f6',borderRadius:'50%',width:'20px',height:'20px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',flexShrink:0}}>✓</div>}
                   </div>
                   <div style={{fontSize:'12px',color:'rgba(255,255,255,0.5)',marginBottom:'8px'}}>
                     {trainer.sport?.charAt(0).toUpperCase()+trainer.sport?.slice(1) || 'Sport'} · {trainer.position || 'Coach'}

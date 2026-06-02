@@ -31,6 +31,24 @@ export default function LeaveReview({ booking, session, onBack, onSubmitted }) {
       }).eq('id', booking.trainer_id)
     }
 
+    // Check if trainer now qualifies for verification
+    const { data: trainerData } = await supabase
+      .from('trainers')
+      .select('rating, review_count, athletes_trained, verified')
+      .eq('id', booking.trainer_id)
+      .single()
+
+    if (trainerData && !trainerData.verified) {
+      if (trainerData.rating >= 4.5 && trainerData.review_count >= 5 && trainerData.athletes_trained >= 10) {
+        await supabase.from('trainers').update({ verified: true }).eq('id', booking.trainer_id)
+        await supabase.from('notifications').insert({
+          user_id: booking.trainer_id,
+          title: 'You are now Verified!',
+          body: 'Congratulations! You have met all the criteria and earned your verified coach badge.'
+        })
+      }
+    }
+
     setLoading(false)
     onSubmitted()
   }

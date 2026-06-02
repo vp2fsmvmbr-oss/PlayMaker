@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export default function HomeAthlete({ profile, onNavigate, onViewGroupSessions }) {
+export default function HomeAthlete({ profile, onNavigate, onViewGroupSessions, onViewLeaderboard }) {
   const [trainers, setTrainers] = useState([])
   const [groupSessions, setGroupSessions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -112,6 +112,20 @@ export default function HomeAthlete({ profile, onNavigate, onViewGroupSessions }
             <div style={{fontSize:'12px'}}>Be the first trainer to join PlayMaker</div>
           </div>
         )}
+
+        <div style={{marginBottom:'20px',display:'flex',gap:'10px'}}>
+          <div onClick={onViewLeaderboard} style={{flex:1,background:'#1A1A1A',borderRadius:'14px',padding:'16px',cursor:'pointer',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:'-20px',right:'-20px',width:'80px',height:'80px',background:'radial-gradient(circle,rgba(227,41,26,0.4) 0%,transparent 65%)'}} />
+            <div style={{fontSize:'24px',marginBottom:'6px',position:'relative'}}>🏆</div>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'white',letterSpacing:'0.5px',position:'relative'}}>Leaderboard</div>
+            <div style={{fontSize:'11px',color:'rgba(255,255,255,0.4)',position:'relative'}}>Top trainers & athletes</div>
+          </div>
+          <div onClick={onViewGroupSessions} style={{flex:1,background:'white',borderRadius:'14px',padding:'16px',cursor:'pointer',border:'1.5px solid #EBEBEB'}}>
+            <div style={{fontSize:'24px',marginBottom:'6px'}}>👥</div>
+            <div style={{fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',color:'#1A1A1A',letterSpacing:'0.5px'}}>Group Sessions</div>
+            <div style={{fontSize:'11px',color:'#8A8A8A'}}>Join group training</div>
+          </div>
+        </div>
 
         <div style={{marginBottom:'20px'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>

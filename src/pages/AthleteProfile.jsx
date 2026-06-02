@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import BlockedUsers from './BlockedUsers'
 import ClipsViewer from './ClipsViewer'
 
-export default function AthleteProfile({ session, onSignOut, onManageClips }) {
+export default function AthleteProfile({ session, onSignOut, onManageClips, onViewStats }) {
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
   const [bookings, setBookings] = useState([])
@@ -179,6 +179,7 @@ export default function AthleteProfile({ session, onSignOut, onManageClips }) {
             ))}
             <div style={{marginTop:'16px',paddingBottom:'20px',display:'flex',flexDirection:'column',gap:'8px'}}>
               <button onClick={() => setShowBlocked(true)} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer'}}>Blocked Users</button>
+              <button onClick={onViewStats} style={{width:'100%',background:'#1A1A1A',color:'white',border:'none',borderRadius:'12px',padding:'13px',fontFamily:"'Bebas Neue', sans-serif",fontSize:'16px',letterSpacing:'0.5px',cursor:'pointer'}}>📊 Stats Tracker</button>
               <button onClick={onSignOut} style={{width:'100%',background:'#F7F7F5',color:'#8A8A8A',border:'1.5px solid #EBEBEB',borderRadius:'12px',padding:'13px',fontSize:'13px',fontWeight:'700',cursor:'pointer'}}>Sign Out</button>
             </div>
           </>

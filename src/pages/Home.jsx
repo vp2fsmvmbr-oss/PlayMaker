@@ -18,6 +18,8 @@ import AthleteOnboarding from './AthleteOnboarding'
 import ReportUser from './ReportUser'
 import RescheduleSession from './RescheduleSession'
 import CreateGroupSession from './CreateGroupSession'
+import StatsTracker from './StatsTracker'
+import Leaderboard from './Leaderboard'
 import GroupSessions from './GroupSessions'
 import ClipsManager from './ClipsManager'
 import SetAvailability from './SetAvailability'
@@ -39,6 +41,8 @@ export default function Home({ session }) {
   const [reportUser, setReportUser] = useState(null)
   const [reschedulingBooking, setReschedulingBooking] = useState(null)
   const [creatingGroupSession, setCreatingGroupSession] = useState(false)
+  const [viewingStats, setViewingStats] = useState(false)
+  const [viewingLeaderboard, setViewingLeaderboard] = useState(false)
   const [viewingGroupSessions, setViewingGroupSessions] = useState(false)
   const [settingAvailability, setSettingAvailability] = useState(false)
   const [managingClips, setManagingClips] = useState(false)
@@ -135,6 +139,22 @@ export default function Home({ session }) {
     return <SetAvailability session={session} onBack={() => setSettingAvailability(false)} />
   }
 
+  if (viewingLeaderboard) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
+        <Leaderboard session={session} onBack={() => setViewingLeaderboard(false)} />
+      </div>
+    )
+  }
+
+  if (viewingStats) {
+    return (
+      <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
+        <StatsTracker session={session} onBack={() => setViewingStats(false)} />
+      </div>
+    )
+  }
+
   if (creatingGroupSession) {
     return (
       <div style={{display:'flex',flexDirection:'column',height:'100%',background:'#F7F7F5'}}>
@@ -225,9 +245,9 @@ export default function Home({ session }) {
         </div>
       )
     }
-    if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} onManageClips={() => setManagingClips(true)} />
+    if (activeTab === 'profile') return <AthleteProfile session={session} onSignOut={handleSignOut} onManageClips={() => setManagingClips(true)} onViewStats={() => setViewingStats(true)} />
     if (activeTab === 'home' && isTrainer) return <HomeTrainer profile={profile} session={session} onNavigate={handleNavigate} onCreateGroup={() => setCreatingGroupSession(true)} onViewAthlete={(a) => { setSelectedAthlete(a); setActiveTab('athletes') }} />
-    return <HomeAthlete profile={profile} onNavigate={handleNavigate} onViewGroupSessions={() => setViewingGroupSessions(true)} />
+    return <HomeAthlete profile={profile} onNavigate={handleNavigate} onViewGroupSessions={() => setViewingGroupSessions(true)} onViewLeaderboard={() => setViewingLeaderboard(true)} />
   }
 
   return (
